@@ -1,5 +1,5 @@
 const {httpError} = require('../helpers/handleError')
-const userModel = require('../models/user')
+const userModel = require('../models/user.model')
 
 
 const getItems = async (req, res) => {
