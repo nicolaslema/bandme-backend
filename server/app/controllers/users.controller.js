@@ -1,6 +1,5 @@
 const {httpError} = require('../helpers/handleError')
 const userModel = require('../models/user.model')
-
 const {addNewUser, getAllUsers, getOneUser} = require('../services/user.service');
 
 
@@ -57,7 +56,7 @@ module.exports = {getItem, getItems, createItem, updateItem, deleteItem}
 
 
 
-
+////////////////////////////////////////////////////////////////////////////////////////////
 // const getItems = async (req, res) => {
 //     try {
 
@@ -71,9 +70,7 @@ module.exports = {getItem, getItems, createItem, updateItem, deleteItem}
 
 // }
 
-
-
-
+////////////////////////////////////////////////////////////////////////////////////////////
 
 // const createItem =  async (req, res) => {
 //     try {
