@@ -3,10 +3,11 @@ const router = express.Router()
 const {getItems, getItem, deleteItem, updateItem, createItem} = require('../controllers/users.controller.js')
 const checkOrigin = require('../middleware/origin.middleware')
 const {validateCreate} = require('../validators/users.validator')
+const {ensureGuest, ensureAuth} = require('../middleware/auth.middleware')
 
 
 
-router.get('/', getItems)
+router.get('/',ensureAuth, getItems)
 
 router.post('/:id', getItem)
 

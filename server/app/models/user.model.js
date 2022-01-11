@@ -3,32 +3,50 @@ const bcrypt = require('bcrypt')
 
 const userSchema = new mongoose.Schema({
 
-    name:{
+    id:{
+        type:String,
+        default: null
+    },
+    displayName:{
+        type:String,
+        required: true
+    },
+
+    firstName:{
         type:String
     },
+
+    lastName:{
+        type:String
+    },
+
+    profilePhoto:{
+        type: String
+    },
+
+    source:{
+        type: String
+    },
+
+    role:{
+        type:String
+    },
+
     age:{
         type:Number
     },
-    provider:{
-        type:String
-    },
-    provider_id:{
-        type:String
-    },
+    
     password:{
         type:String,
-        require: true
     },
+
     email:{
         type:String,
-        require: true
+        require: true,
+        unique: true
     },
-    token:{
-        type:String
-    },
-    id:{
-        type:String
-    },
+   
+   
 
 },
 
@@ -39,7 +57,7 @@ const userSchema = new mongoose.Schema({
 })
 
 
-//Siempre que se modifique la password, la encrypta automaticamente antes de ejecutar "save" en la base de datos
+//Siempre que se modifique la password, la encrypta automaticamente antes de ejecutar "save" o "create" en la base de datos
 userSchema.pre('save', function(next){
     const user = this;
     if(!user.isModified('password')) return next();
