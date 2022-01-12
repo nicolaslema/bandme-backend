@@ -82,7 +82,7 @@ const signInWithEmailPassword = async(req, res) =>{
 
 const signUpWithEmailPassword = async(req, res) =>{
     const {email, password} = req.body;
-    console.log(req.body)
+   
 
     const existingUser = await getUserByEmail(email);
 

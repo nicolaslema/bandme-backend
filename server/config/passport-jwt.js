@@ -13,7 +13,6 @@ passport.use(
         secretOrKey: process.env.JWT_SECRET,
       },
     async(payload, done) => {
-        console.log('here')
         try {
             const user = await userModel.findOne(payload.id)
             if(user){
