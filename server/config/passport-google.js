@@ -31,6 +31,8 @@ passport.use(
            }
 
 
+           //TODO: ADD SERVICES TO REGISTER AND LOGIN WITH TOKEN
+
            try {
                const user = await userModel.findOne({email: profile.emails[0].value})
                if(user){

@@ -1,6 +1,7 @@
 const express = require('express')
 const passport = require('passport')
-const {signUpWithEmailPassword, signInWithEmailPassword} = require('../controllers/users.controller')
+const {signUpWithEmailPassword, signInWithEmailPassword, } = require('../controllers/users.controller')
+const {getUserByEmail} = require('../services/user.service')
 
 const router = express.Router()
 
@@ -12,11 +13,15 @@ router.get('/google', passport.authenticate('google', {scope:['profile', 'email'
 
 //@desc Google auth Callback
 //@route GET /api/1.0/auth/google/callback
+//@result JWTTOKEN
 router.get('/google/callback', passport.authenticate('google', {failureRedirect:
     '/'}),
-    (req,res)=>{
-        console.log(req.user)
-        res.redirect('/api/1.0/users')
+    async (req,res)=>{
+        
+        //FIXME: add services to check existingUserByEmail
+        const existingUser =  await getUserByEmail(req.user.email)
+        const token = existingUser.createToken()
+        return res.json({existingUser, token})
     })
 
 

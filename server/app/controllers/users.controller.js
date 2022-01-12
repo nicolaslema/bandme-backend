@@ -50,8 +50,6 @@ const signInWithEmailPassword = async(req, res) =>{
             return res.json({message: 'Please send your email and passowrd'})
         }
 
-        
-
         if(!existingUser){
             return res.json({message: "Email or password does not match"})
         }
@@ -62,15 +60,9 @@ const signInWithEmailPassword = async(req, res) =>{
                 const token = existingUser.createToken()
                 return res.json({existingUser, token})
             }
-            
-            
+                      
         }
         return res.json({message: "Error Permission Denied"})
-
-
-
-
-
 
 
     } catch (error) {
@@ -78,6 +70,11 @@ const signInWithEmailPassword = async(req, res) =>{
     }
 
 }
+
+
+
+
+
 
 
 
