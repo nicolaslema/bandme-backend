@@ -58,4 +58,9 @@ const getUserByEmail = async(email) =>{
 
 
 
+
+
+
+
+
 module.exports = { addNewUser, getAllUsers, getOneUser, getUserByEmail, addGoogleUser }

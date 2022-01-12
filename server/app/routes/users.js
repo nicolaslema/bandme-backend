@@ -7,7 +7,7 @@ const {ensureGuest, ensureAuth} = require('../middleware/auth.middleware')
 
 
 
-router.get('/',ensureAuth, getItems)
+router.get('/', getItems)
 
 router.post('/:id', getItem)
 

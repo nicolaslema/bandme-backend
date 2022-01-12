@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
 
@@ -9,7 +10,7 @@ const userSchema = new mongoose.Schema({
     },
     displayName:{
         type:String,
-        required: true
+       
     },
 
     firstName:{
@@ -46,7 +47,6 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
    
-   
 
 },
 
@@ -64,6 +64,21 @@ userSchema.pre('save', function(next){
     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10))
     next()
 })
+
+
+userSchema.methods.comparePassword = function(password){
+    const user = this;
+    const userObject = user.toObject()
+    return bcrypt.compareSync(password, userObject.password)
+}
+
+userSchema.methods.createToken = function(){
+    const user = this;
+    return jwt.sign({email: user.email}, process.env.JWT_SECRET,{
+        expiresIn: 900000,
+    })
+}
+
 
 
 

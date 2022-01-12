@@ -2,8 +2,16 @@ const passport = require('passport');
 const userModel = require('../app/models/user.model');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const {getUserByEmail,  addNewUser} = require('../app/services/user.service')
+const passportJwt = require('passport-jwt')
+const ExtractJwt = passportJwt.ExtractJwt
+const StrategyJwt = passportJwt.Strategy
+
+
+
 
 module.exports = function(passport){
+
+
 passport.use(
 
     new GoogleStrategy({

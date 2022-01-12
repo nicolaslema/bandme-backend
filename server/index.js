@@ -6,11 +6,13 @@ const cookieParser = require('cookie-parser')
 const {connectDB} = require('./config/db');
 const passport = require('passport')
 const session = require('express-session')
-
+const JWTSTrategy = require('./config/passport-jwt')
 
 // Passport config
 //GOOGLE , FACEBOOK, JWT
 require('./config/passport-google')(passport)
+
+
 
 
 
@@ -25,6 +27,8 @@ app.use(express.urlencoded({extended: true}))
 app.use(morgan('dev'))
 app.use(cookieParser())
 
+
+
 app.use(
     session({
       secret: 'keyboard cat',
@@ -36,6 +40,7 @@ app.use(
 
 app.use(passport.initialize())
 app.use(passport.session())
+
 
 app.use(function (req, res, next) {
   res.locals.user = req.user || null
