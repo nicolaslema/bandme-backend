@@ -47,17 +47,15 @@ const userSchema = new mongoose.Schema({
         unique: true
     },
    
-
 },
 
 {
     timestamps: true,
     versionKey: false
-
 })
 
 
-//Siempre que se modifique la password, la encrypta automaticamente antes de ejecutar "save" o "create" en la base de datos
+//@desc Siempre que se modifique la password, la encrypta automaticamente antes de ejecutar "save" o "create" en la base de datos
 userSchema.pre('save', function(next){
     const user = this;
     if(!user.isModified('password')) return next();
@@ -65,13 +63,13 @@ userSchema.pre('save', function(next){
     next()
 })
 
-
+//@desc Compara las password 
 userSchema.methods.comparePassword = function(password){
     const user = this;
     const userObject = user.toObject()
     return bcrypt.compareSync(password, userObject.password)
 }
-
+//@desc Asigna JWT token con el email
 userSchema.methods.createToken = function(){
     const user = this;
     return jwt.sign({email: user.email}, process.env.JWT_SECRET,{

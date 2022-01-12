@@ -6,7 +6,7 @@ const {validateCreate} = require('../validators/users.validator')
 const {ensureGuest, ensureAuth} = require('../middleware/auth.middleware')
 
 
-
+//@desc SOLAMENTE ES TEST
 router.get('/', getItems)
 
 router.post('/:id', getItem)

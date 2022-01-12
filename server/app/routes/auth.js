@@ -18,7 +18,7 @@ router.get('/google/callback', passport.authenticate('google', {failureRedirect:
     '/'}),
     async (req,res)=>{
         
-        //FIXME: add services to check existingUserByEmail
+        //FIXME: agregar servicio para desacoplar
         const existingUser =  await getUserByEmail(req.user.email)
         const token = existingUser.createToken()
         return res.json({existingUser, token})

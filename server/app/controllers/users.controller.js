@@ -39,7 +39,7 @@ const createItem =  async (req, res) => {
 
 const signInWithEmailPassword = async(req, res) =>{
     const {email, password} = req.body
-
+    //FIXME: agregar validator
     try {
         const existingUser = await getUserByEmail(email)
 
@@ -54,6 +54,8 @@ const signInWithEmailPassword = async(req, res) =>{
             return res.json({message: "Email or password does not match"})
         }
 
+
+        //FIXME: agregar servicio para desacoplar
         if(existingUser){
             const matchedUser = existingUser.comparePassword(password)
             if(matchedUser){

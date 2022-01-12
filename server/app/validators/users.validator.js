@@ -1,6 +1,9 @@
 const {check} = require('express-validator')
 const {validateResult} = require('../helpers/validateHelpers')
 
+
+
+//TODO: Crear los validator que faltan [validar campos google, validar email y contraseña, etc...]
 const validateCreate = [ 
 
     check('name')
