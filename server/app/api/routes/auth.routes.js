@@ -5,7 +5,7 @@ const {getUserByEmail} = require('../../services/user.service') */
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { validateRequestFields } = require('../../helpers/validateHelpers');
-const { validateEmail, validateLogin } = require('../controllers/auth.controller');
+const { validateEmail, validateLoginByEmail, createAccountByEmail } = require('../controllers/auth.controller');
 
 const router = Router();
 
@@ -24,12 +24,15 @@ router.post('/validate/login', [
     check('email', 'Email is required').isEmail(),
     check('password', 'Password is required').not().isEmpty(),
     validateRequestFields
-], validateLogin);
+], validateLoginByEmail);
 
 
 router.post('/create/account', [
-    
-]);
+    check('email', 'Email is required').isEmail(),
+    check('password', 'Password is required').not().isEmpty(),
+    check('userType', 'UserType is required').not().isEmpty(),
+    validateRequestFields
+], createAccountByEmail);
 
 /* //@desc auth with google
 //@route GET /api/1.0/auth/google

@@ -23,11 +23,11 @@ const validateEmail = async (req, res = response) => {
     }
 };
 
-const validateLogin = async (req, res = response) => {
+const validateLoginByEmail = async (req, res = response) => {
     const { email, password } = req.body;
     console.log("email de la request: "+ email + "/ pass de la request: "+ password);
     const authService = new AuthService();
-    const userLogin = await authService.validateLogin(email, password);
+    const userLogin = await authService.validateLoginByEmail(email, password);
     if(userLogin.isAuthenticated){
         res.status(200).json({
             isAuthenticated: userLogin.isAuthenticated,
@@ -40,6 +40,26 @@ const validateLogin = async (req, res = response) => {
         });
     }
 }
+
+const createAccountByEmail = async (req, res = response) => {
+    const { email, password, userType } = req.body;
+    console.log("email de la request: "+ email + "/ pass de la request: "+ password + "/ userType de la request: "+ userType);
+    const authService = new AuthService();
+    const userRegister = await authService.createAccountByemail(email, password, userType);
+    if(userRegister.accountCreated){
+        res.status(200).json({
+            accountCreated: userRegister.accountCreated,
+            user_data: userRegister.userData,
+            message: 'Account created successfully'
+        });
+    } else {
+        res.status(404).json({
+            accountCreated: userRegister.accountCreated,
+            message: "Account not created"
+        });
+    }
+    
+};
 
 const getItems = async (req, res) => {
     try {
@@ -145,14 +165,6 @@ const signUpWithEmailPassword = async(req, res) =>{
 
 }
 
-
-
-
-
-
-
-
-
 const updateItem = (req, res) => {
 
 }
@@ -170,7 +182,8 @@ module.exports = {
     updateItem,
     deleteItem,
     validateEmail,
-    validateLogin
+    validateLoginByEmail,
+    createAccountByEmail
 }
 
 
