@@ -1,8 +1,4 @@
-const e = require('express');
 const { response } = require('express');
-const passport = require('passport');
-const {httpError} = require('../../helpers/handleError')
-const userModel = require('../../models/users.model')
 const {addNewUser, getAllUsers, getOneUser, getUserByEmail, AuthService} = require('../../services/auth.service');
 
 const validateEmail = async (req, res = response) => {
@@ -16,7 +12,7 @@ const validateEmail = async (req, res = response) => {
             message: 'Email validated'
         });
     } else {
-        res.status(204).json({
+        res.status(404).json({
             exist_email: existEmail,
             message: 'Email does not exist'
         });
@@ -41,15 +37,22 @@ const validateLoginByEmail = async (req, res = response) => {
     }
 }
 
-const createAccountByEmail = async (req, res = response) => {
-    const { email, password, userType } = req.body;
-    console.log("email de la request: "+ email + "/ pass de la request: "+ password + "/ userType de la request: "+ userType);
+const createAccount = async (req, res = response) => {
+    const { email, provider, userType } = req.body;
+    console.log("email de la request: "+ email + "/ provider de la request: "+ provider + "/ userType de la request: "+ userType);
+    let userRegister = {accountCreated: false};
     const authService = new AuthService();
-    const userRegister = await authService.createAccountByemail(email, password, userType);
+    if(provider == "GOOGLE" || provider == "FACEBOOK"){
+        const { profilePhoto, firstName, lastName } = req.body;
+        userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
+    } else {
+        const { password } = req.body;
+        userRegister = await authService.createAccountByEmaiil(email, password, userType, provider);
+    }
     if(userRegister.accountCreated){
         res.status(200).json({
             accountCreated: userRegister.accountCreated,
-            user_data: userRegister.userData,
+            payload: userRegister.userData,
             message: 'Account created successfully'
         });
     } else {
@@ -58,132 +61,39 @@ const createAccountByEmail = async (req, res = response) => {
             message: "Account not created"
         });
     }
-    
+
 };
 
-const getItems = async (req, res) => {
-    try {
-        const allUsers = await getAllUsers(req)
-        res.send({data: allUsers})
-    } catch (error) {
-        httpError(res, error) 
+const validateEmailBySocialMedia = async (req, res = response) => {
+    const { profilePhoto, firstName, lastName, email, provider } = req.user;
+    console.log('email de la request by social media: '+ email);
+    const authService = new AuthService();
+    const existEmail = await authService.validateExistEmail(email);
+    if ( existEmail ){
+        res.status(200).json({
+            exist_email: existEmail,
+            message: 'Email validated'
+        });
+    } else {
+        res.status(404).json({
+            exist_email: existEmail,
+            user_data: {
+                email,
+                profilePhoto, 
+                firstName, 
+                lastName,
+                provider
+            },
+            message: 'Email does not exist'
+        });
     }
-}
-
-
-const getItem = async (req, res) => {
-    const id = req.params.id
-    try {
-        const user = await getOneUser(id)
-        res.send({data: user})           
-    } catch (error) {
-        
-    }
-}
-
-const createItem =  async (req, res) => {
-    const user = req.body
-    try {
-        const testUser = await addNewUser(user)
-        res.send({status: 200, data: testUser, message: "added" })    
-    } catch (error) {
-        httpError(res, error)
-        
-    }
-
-}
-
-
-const signInWithEmailPassword = async(req, res) =>{
-    const {email, password} = req.body
-    //FIXME: agregar validator
-    try {
-        const existingUser = await getUserByEmail(email)
-
-        if(!req.body.email ){
-            return res.json({message: 'Please send your email and passowrd'})
-        }
-        if(!req.body.password ){
-            return res.json({message: 'Please send your email and passowrd'})
-        }
-
-        if(!existingUser){
-            return res.json({message: "Email or password does not match"})
-        }
-
-
-        //FIXME: agregar servicio para desacoplar
-        if(existingUser){
-            const matchedUser = existingUser.comparePassword(password)
-            if(matchedUser){
-                const token = existingUser.createToken()
-                return res.json({existingUser, token})
-            }
-                      
-        }
-        return res.json({message: "Error Permission Denied"})
-
-
-    } catch (error) {
-        httpError(error)
-    }
-
-}
-
-
-
-
-
-
-
-
-const signUpWithEmailPassword = async(req, res) =>{
-    const {email, password} = req.body;
-   
-
-    const existingUser = await getUserByEmail(email);
-
-    try {
-        if(existingUser){
-            return res.json({message: 'User with email already exists!'})
-        }
-    
-        const newUser = {
-            email: email,
-            password: password
-        }
-        const savedUser = await addNewUser(newUser)
-
-        if(savedUser){
-            return res.json({message: 'user created'})
-        }
-            return res.json({message: 'error user not created'})
-        
-    } catch (error) {
-        httpError(res, error)
-    }
-
-}
-
-const updateItem = (req, res) => {
-
-}
-
-const deleteItem = (req, res) => {
-
-}
+};
 
 module.exports = {
-    getItem,
-    signUpWithEmailPassword,
-    signInWithEmailPassword,
-    getItems,
-    createItem,
-    updateItem,
-    deleteItem,
     validateEmail,
     validateLoginByEmail,
-    createAccountByEmail
+    createAccount,
+    validateEmailBySocialMedia
 }
 
 

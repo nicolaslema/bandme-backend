@@ -5,6 +5,7 @@ require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const helmet = require("helmet");
 const {connectDB} = require('./db');
+const passport = require('passport');
 /* 
 const passport = require('passport');
 const session = require('express-session');
@@ -43,7 +44,7 @@ class Server{
         this.app.use(express.urlencoded({extended: true}))
         this.app.use(morgan('dev'))
         this.app.use(cookieParser())
-        //this.app.use(passport.initialize())
+        this.app.use(passport.initialize())
     }
 
     routes(){

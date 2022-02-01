@@ -24,9 +24,9 @@
     "mongoose": "^6.1.5",
     "morgan": "^1.10.0",
     "passport": "^0.5.2",
-    "passport-google-oauth20": "^2.0.0",
+    "passport-facebook-token": "^4.0.0",
+    "passport-google-verify-token": "^2.0.0",
     "passport-jwt": "^4.0.0",
-    "passport-local": "^1.0.0",
     "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.3.0",
     "uuid": "^8.3.2"
