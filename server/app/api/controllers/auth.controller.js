@@ -1,11 +1,12 @@
 const { response } = require('express');
 const path = require('path');
-const {addNewUser, getAllUsers, getOneUser, getUserByEmail, AuthService} = require(path.join(process.cwd(), 'app' ,'services', 'auth.service'));//require('../../services/auth.service');
+const AuthService = require(path.join(process.cwd(), 'app' ,'services', 'auth.service'));;//require('../../services/auth.service');
 
 const validateEmail = async (req, res = response) => {
     const { email } = req.body;
     console.log('email de la request: '+ email);
-    const authService = new AuthService();
+    const authService = AuthService;
+    console.log(authService.message);
     const existEmail = await authService.validateExistEmail(email);
     if ( existEmail ){
         res.status(200).json({
@@ -23,7 +24,7 @@ const validateEmail = async (req, res = response) => {
 const validateLoginByEmail = async (req, res = response) => {
     const { email, password } = req.body;
     console.log("email de la request: "+ email + "/ pass de la request: "+ password);
-    const authService = new AuthService();
+    const authService = AuthService;
     const userLogin = await authService.validateLoginByEmail(email, password);
     if(userLogin.isAuthenticated){
         res.status(200).json({
@@ -42,7 +43,7 @@ const createAccount = async (req, res = response) => {
     const { email, provider, userType } = req.body;
     console.log("email de la request: "+ email + "/ provider de la request: "+ provider + "/ userType de la request: "+ userType);
     let userRegister = {accountCreated: false};
-    const authService = new AuthService();
+    const authService = AuthService;
     if(provider == "GOOGLE" || provider == "FACEBOOK"){
         const { profilePhoto, firstName, lastName } = req.body;
         userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
@@ -68,7 +69,7 @@ const createAccount = async (req, res = response) => {
 const validateEmailBySocialMedia = async (req, res = response) => {
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
     console.log('email de la request by social media: '+ email);
-    const authService = new AuthService();
+    const authService = AuthService;
     const existEmail = await authService.validateExistEmail(email);
     if ( existEmail ){
         res.status(200).json({

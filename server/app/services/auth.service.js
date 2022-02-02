@@ -7,7 +7,9 @@ const bcrypt = require('bcrypt');
 
 class AuthService {
     
-    constructor(){}
+    constructor(){
+        this.message = 'I am an instance';
+    }
 
     async validateExistEmail(validateEmail) {
         let existEmail = false;
@@ -161,4 +163,4 @@ class AuthService {
 
 };
 
-module.exports = { AuthService }
+module.exports = new AuthService();
