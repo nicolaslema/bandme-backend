@@ -1,6 +1,7 @@
-const { httpError } = require("../helpers/handleError");
-const userModel = require("../models/user.model");
-const User = require('../models/user.model');
+const path = require('path');
+const { httpError } = require(path.join(process.cwd(), 'app' ,'helpers', 'handleError'));//require("../helpers/handleError");
+const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require("../models/user.model");
+const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require('../models/user.model');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 

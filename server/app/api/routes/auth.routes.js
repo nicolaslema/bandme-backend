@@ -1,14 +1,19 @@
 const passport = require('passport');
+const path = require('path');
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { validateRequestFields } = require('../../helpers/validateHelpers');
-const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require('../controllers/auth.controller');
+const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
+const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));//require('../controllers/auth.controller');
 //Passport Google
-require('../../config/passport-google')(passport);
+require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
 //Passport Facebook
-const passportFacebook = require('../../config/passport-facebook');
+const passportFacebook = require(path.join(process.cwd(), 'app' ,'config', 'passport-facebook'))//require('../../config/passport-facebook');
 
 const router = Router();
+
+router.get('/', (req, res)=>{
+    res.send('hola mundo')
+})
 
 //Check if exist email
 router.post('/validate/email', [

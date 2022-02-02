@@ -6,23 +6,8 @@ const cookieParser = require('cookie-parser');
 const helmet = require("helmet");
 const {connectDB} = require('./db');
 const passport = require('passport');
-/* 
-const passport = require('passport');
-const session = require('express-session');
-//Passport config
-//JWT 
-const JWTSTrategy = require('./passport-jwt')
-
-//Passport config
-//GOOGLE 
-require('./passport-google')(passport) */
-
-
-//Passport config
-//FACEBOOK 
-
-//http://192.168.0.170:8080
-const rootPath = '/api/v1/login';
+const rootPath = process.env.ROOT_PATH;
+const path = require('path');
 
 class Server{
 
@@ -49,7 +34,7 @@ class Server{
 
     routes(){
         //Middware que se carga cuando pasa una solicitud por esta ruta. Para utilizar las request que estan dentro de Routes
-        this.app.use(this.rootPath, require('../api/routes/auth.routes'));
+        this.app.use(this.rootPath, require(path.join(process.cwd(), 'app' ,'api', 'routes', 'auth.routes')));//('../api/routes/auth.routes'));
         //this.app.use(otroPath, require('../api/routes/login.routes'));
     }
 
