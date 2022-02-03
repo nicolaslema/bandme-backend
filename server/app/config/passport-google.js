@@ -1,8 +1,6 @@
 const passport = require('passport');
-const userModel = require('../models/user.model');
 //const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GoogleTokenStrategy = require("passport-google-verify-token").Strategy;
-const {getUserByEmail,  addNewUser} = require('../services/auth.service');
 const passportJwt = require('passport-jwt');
 const ExtractJwt = passportJwt.ExtractJwt;
 const StrategyJwt = passportJwt.Strategy;

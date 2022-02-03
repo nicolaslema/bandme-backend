@@ -8,15 +8,23 @@ const validateEmail = async (req, res = response) => {
     const authService = AuthService;
     console.log(authService.message);
     const existEmail = await authService.validateExistEmail(email);
-    if ( existEmail ){
-        res.status(200).json({
-            exist_email: existEmail,
-            message: 'Email validated'
-        });
-    } else {
-        res.status(404).json({
-            exist_email: existEmail,
-            message: 'Email does not exist'
+    try{
+        if ( existEmail ){
+            res.status(200).json({
+                exist_email: existEmail,
+                message: 'Email validated'
+            });
+        } else {
+            res.status(200).json({
+                exist_email: existEmail,
+                message: 'Email does not exist'
+            });
+        }
+    } catch (error) {
+        console.log('Error al validar si existe el email');
+        res.status(500).json({
+            exist_email: false,
+            message: 'Email validation failed'
         });
     }
 };
@@ -26,15 +34,23 @@ const validateLoginByEmail = async (req, res = response) => {
     console.log("email de la request: "+ email + "/ pass de la request: "+ password);
     const authService = AuthService;
     const userLogin = await authService.validateLoginByEmail(email, password);
-    if(userLogin.isAuthenticated){
-        res.status(200).json({
+    try {
+        if(userLogin.isAuthenticated){
+            res.status(200).json({
+                isAuthenticated: userLogin.isAuthenticated,
+                user_data: userLogin.user
+            });
+        } else {
+            res.status(200).json({
+                isAuthenticated: userLogin.isAuthenticated,
+                message: "Login failed, verify your credentials"
+            });
+        };
+    } catch (error) {
+        console.log('Error al validar si existe el email');
+        res.status(500).json({
             isAuthenticated: userLogin.isAuthenticated,
-            user_data: userLogin.user
-        });
-    } else {
-        res.status(404).json({
-            isAuthenticated: userLogin.isAuthenticated,
-            message: "Login failed, verify your credentials"
+            message: "Login validation failed"
         });
     }
 }
@@ -49,46 +65,59 @@ const createAccount = async (req, res = response) => {
         userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
     } else {
         const { password } = req.body;
-        userRegister = await authService.createAccountByEmaiil(email, password, userType, provider);
+        userRegister = await authService.createAccountByEmail(email, password, userType, provider);
     }
-    if(userRegister.accountCreated){
-        res.status(200).json({
-            accountCreated: userRegister.accountCreated,
-            payload: userRegister.userData,
-            message: 'Account created successfully'
-        });
-    } else {
-        res.status(404).json({
-            accountCreated: userRegister.accountCreated,
-            message: "Account not created"
-        });
-    }
-
-};
+    try {
+        if(userRegister.accountCreated){
+            res.status(200).json({
+                accountCreated: userRegister.accountCreated,
+                payload: userRegister.userData,
+                message: 'Account created successfully'
+            });
+        } else {
+            res.status(200).json({
+                accountCreated: userRegister.accountCreated,
+                message: "Account not created"
+            });
+        }
+    } catch(error) {
+        console.log('Error al crear cuenta');
+        res.status(500).json({
+                accountCreated: false,
+                message: "Create account failed"
+            });
+        }   
+    };
 
 const validateEmailBySocialMedia = async (req, res = response) => {
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
     console.log('email de la request by social media: '+ email);
-    const authService = AuthService;
-    const existEmail = await authService.validateExistEmail(email);
-    if ( existEmail ){
-        res.status(200).json({
-            exist_email: existEmail,
-            message: 'Email validated'
-        });
-    } else {
-        res.status(404).json({
-            exist_email: existEmail,
-            user_data: {
-                email,
-                profilePhoto, 
-                firstName, 
-                lastName,
-                provider
-            },
-            message: 'Email does not exist'
-        });
+    try{
+        const authService = AuthService;
+        const existEmail = await authService.validateExistEmail(email);
+        if ( existEmail ){
+            res.status(200).json({
+                exist_email: existEmail,
+                message: 'Email validated'
+            });
+        } else {
+            res.status(200).json({
+                exist_email: existEmail,
+                user_data: {
+                    email,
+                    profilePhoto, 
+                    firstName, 
+                    lastName,
+                    provider
+                },
+                message: 'Email does not exist'
+            });
+        }
+    }catch (error) {
+        console.log('Error al iniciar el servicio de validacion de email by social media: '+ error);
+        res.status(404)
     }
+    
 };
 
 module.exports = {

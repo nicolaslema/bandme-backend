@@ -1,7 +1,7 @@
 const path = require('path');
 const { httpError } = require(path.join(process.cwd(), 'app' ,'helpers', 'handleError'));//require("../helpers/handleError");
-const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require("../models/user.model");
-const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require('../models/user.model');
+const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require("../models/user.model");//
+const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require('../models/user.model');//
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
@@ -42,9 +42,9 @@ class AuthService {
         }
     };
 
-    async comparePasswords(passwordFromRequest, originPassword){
+    comparePasswords(passwordFromRequest, originPassword){
         const comparePasswordsResult = bcrypt.compareSync(passwordFromRequest, originPassword);
-        console.log('Las passwords coinciden: '+ comparePasswords);
+        console.log('Las passwords coinciden: '+ comparePasswordsResult);
         return comparePasswordsResult;
     }
 
@@ -56,7 +56,8 @@ class AuthService {
         //1 verifico si existe el email en la base para saber si es un login o un registro
         if (userData != null && userData.email == validateEmail) {
             //2.bis si exite es un login, entonces tengo que comparar las passwords la que llega y la que esta en la base
-            if(comparePasswords(validatePassword, userData._doc.password)){
+            const passwordValidation = this.comparePasswords(validatePassword, userData._doc.password);
+            if(passwordValidation){
                 //3 si coinciden genero el jwt y responde
                 const jwtCreated = await this.createJWT(userData._id);
                 if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
@@ -85,7 +86,7 @@ class AuthService {
         return userLoginResponse;
     };
 
-    async createAccountByEmaiil(email, password, userType, provider) {
+    async createAccountByEmail(email, password, userType, provider) {
         console.log('datos del usuario para registrar: '+ email+"/"+password+"/"+userType);
         let userRegister = { accountCreated: false, userData: {} }
         try {

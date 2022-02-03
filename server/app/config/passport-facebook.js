@@ -10,16 +10,18 @@ passport.use(
         clientSecret: process.env.FAEBOOK_APP_SECRET,
       },
       async (accessToken, refreshToken, profile, done, res) => {
-        console.log(`profile email: ${profile.emails[0].value}////token: ${accessToken}////PROFILE:  ${JSON.stringify(profile)}`);
+        //console.log(`profile email: ${profile.emails[0].value}////token: ${accessToken}////PROFILE:  ${JSON.stringify(profile)}`);
+      
+        console.log('primer nombre: ' + profile.name.givenName);
 
         const user = {
-            firstName: JSON.stringify(profile.name.givenName),
-            lastName: JSON.stringify(profile.name.familyName),
-            profilePhoto: JSON.stringify(profile.photos[0].value),
-            email: JSON.stringify(profile._json.email),
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName,
+            profilePhoto: profile.photos[0].value,
+            email: profile.emails[0].value,
             provider: "FACEBOOK"
         }
-        console.log("usuario obtenido de facebook: "+ user.email);
+        console.log("usuario obtenido de facebook: "+ JSON.stringify(user));
         done(null, user);
 
         /* const newuser = {
