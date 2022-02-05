@@ -23,15 +23,7 @@ passport.use(
                email: parsedToken.email,
                provider: "GOOGLE"
            }
-
-           /* const user = {
-            firstName: profile.name.givenName,
-            lastName: profile.name.familyName,
-            profilePhoto: profile.photos[0].value,
-            email: profile.emails[0].value,
-            provider: "FACEBOOK"
-        } */
-
+           
            console.log("usuario obtenido de google: "+ user.email);
            done(null, user);
         }
