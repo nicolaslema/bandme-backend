@@ -7,21 +7,23 @@ const validateEmail = async (req, res = response) => {
     console.log('email de la request: '+ email);
     const authService = AuthService;
     console.log(authService.message);
-    const existEmail = await authService.validateExistEmail(email);
+    const validateUserExist = await authService.validateExistEmail(email);
+    console.log('email antes de entrar al if del controller: '+ validateUserExist.existEmail);
     try{
-        if ( existEmail ){
+        if ( validateUserExist.existEmail ){
             res.status(200).json({
-                exist_email: existEmail,
-                message: 'Email validated'
+                exist_email: validateUserExist.existEmail,
+                message: 'Email validated',
+                jwt: validateUserExist.jwt
             });
         } else {
             res.status(200).json({
-                exist_email: existEmail,
+                exist_email: validateUserExist.existEmail,
                 message: 'Email does not exist'
             });
         }
     } catch (error) {
-        console.log('Error al validar si existe el email');
+        console.log('Catch: Error al validar si existe el email');
         res.status(500).json({
             exist_email: false,
             message: 'Email validation failed'
@@ -94,15 +96,17 @@ const validateEmailBySocialMedia = async (req, res = response) => {
     console.log('email de la request by social media: '+ email);
     try{
         const authService = AuthService;
-        const existEmail = await authService.validateExistEmail(email);
-        if ( existEmail ){
+        const validateUserExist = await authService.validateExistEmail(email);
+        console.log('controller if: ' + validateUserExist.existEmail);
+        if ( validateUserExist.existEmail ){
             res.status(200).json({
-                exist_email: existEmail,
-                message: 'Email validated'
+                exist_email: validateUserExist.existEmail,
+                message: 'Email validated',
+                jwt: validateUserExist.jwt
             });
         } else {
             res.status(200).json({
-                exist_email: existEmail,
+                exist_email: validateUserExist.existEmail,
                 user_data: {
                     email,
                     profilePhoto, 
@@ -115,7 +119,7 @@ const validateEmailBySocialMedia = async (req, res = response) => {
         }
     }catch (error) {
         console.log('Error al iniciar el servicio de validacion de email by social media: '+ error);
-        res.status(404)
+        res.status(404);
     }
     
 };

@@ -13,13 +13,25 @@ passport.use(
         clientID: process.env.CLIENT_ID
     },
         function(parsedToken, googleId, done) {
+
+            console.log('datos obtenidos de google: ' + parsedToken.email);
+
            const user ={
-               firstName: JSON.stringify(parsedToken.given_name),
-               lastName: JSON.stringify(parsedToken.family_name),
-               profilePhoto: JSON.stringify(parsedToken.picture),
-               email: JSON.stringify(parsedToken.email),
+               firstName: parsedToken.given_name,
+               lastName: parsedToken.family_name,
+               profilePhoto: parsedToken.picture,
+               email: parsedToken.email,
                provider: "GOOGLE"
            }
+
+           /* const user = {
+            firstName: profile.name.givenName,
+            lastName: profile.name.familyName,
+            profilePhoto: profile.photos[0].value,
+            email: profile.emails[0].value,
+            provider: "FACEBOOK"
+        } */
+
            console.log("usuario obtenido de google: "+ user.email);
            done(null, user);
         }

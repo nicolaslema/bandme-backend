@@ -12,23 +12,36 @@ class AuthService {
     }
 
     async validateExistEmail(validateEmail) {
-        let existEmail = false;
+        let validateUserExist = {existEmail: false, jwt: ""};
         try {
             console.log("email antes de consultar la base: "+ validateEmail);
             const user = await userModel.findOne({email: validateEmail});
             if (user != null && user.email == validateEmail) {
                 console.log("email encontrado luego de consultar la base: "+ user);
-                existEmail = true;
+                console.log('id de mongo del usuario: ' + user._id);
+
+                const jwtCreated = await this.createJWT(user._id);
+                if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                    console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                    validateUserExist.existEmail = false;
+                    validateUserExist.jwt = "Error al generar jwt";
+                    return validateUserExist;
+                } else {
+                    validateUserExist.existEmail = true;
+                    validateUserExist.jwt = jwtCreated;
+                }
             } else{
-                console.log("email encontrado luego de consultar la base: "+ user);
-                existEmail = false;
+                console.log("email encontrado luego de consultar la base else: "+ user);
+                validateUserExist.existEmail = false;
+                validateUserExist.jwt = "";
             }
         } catch (error) {
-            existEmail = false;
+            validateUserExist.existEmail = false;
+            validateUserExist.jwt = "";
             console.log('Error findOne email: ' + error);
             httpError(error);
         }
-        return existEmail;
+        return validateUserExist;
     };
 
     async createJWT (userId){
@@ -52,11 +65,13 @@ class AuthService {
         let userLoginResponse = {isAuthenticated: false, user: {}};
         console.log("email y pass para buscar en la base: "+validateEmail+"//"+validatePassword);
         const userData = await userModel.findOne({email: validateEmail});
-        console.log('usuario encontrado en la base: '+ userData);
+        console.log('usuario encontrado en la base: '+ userData.password);
         //1 verifico si existe el email en la base para saber si es un login o un registro
         if (userData != null && userData.email == validateEmail) {
             //2.bis si exite es un login, entonces tengo que comparar las passwords la que llega y la que esta en la base
-            const passwordValidation = this.comparePasswords(validatePassword, userData._doc.password);
+            console.log('passwords para comparar: ' + validatePassword + "||" + userData.password);
+            const passwordValidation = this.comparePasswords(validatePassword, userData.password);
+            console.log('password validation: ' + passwordValidation);
             if(passwordValidation){
                 //3 si coinciden genero el jwt y responde
                 const jwtCreated = await this.createJWT(userData._id);
