@@ -1,4 +1,3 @@
-const nodemailer = require('nodemailer');
 const ProtonMail = require('protonmail-api');
 const path = require('path');
 const UserCode = require(path.join(process.cwd(), 'app' ,'models', 'user-code.model'));
