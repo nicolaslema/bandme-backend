@@ -1,14 +1,15 @@
 const path = require('path');
-const { httpError } = require(path.join(process.cwd(), 'app' ,'helpers', 'handleError'));//require("../helpers/handleError");
-const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require("../models/user.model");//
-const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));//require('../models/user.model');//
+const { httpError } = require(path.join(process.cwd(), 'app' ,'helpers', 'handleError'));
+const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
+const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const EmailerService = require(path.join(process.cwd(), 'app' ,'services', 'emailer.service'));
 
 class AuthService {
     
     constructor(){
-        this.message = 'I am an instance';
+        this.message = 'AuthService instance created';
     }
 
     async validateExistEmail(validateEmail) {
@@ -114,20 +115,30 @@ class AuthService {
                     userType: registeredUser.userType
                 }
 
-                const jwtCreated = await this.createJWT(registeredUser._id);
+                /* const jwtCreated = await this.createJWT(registeredUser._id);
                 if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
                     console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
                     userLoginResponse.isAuthenticated = false;
                     userLoginResponse.user = {message: 'JWT is no created'};
                     return userLoginResponse;
-                }
+                } */
                 
                 const userAccount = {
                     user_data: userAccountDataToSend,
-                    jwt: jwtCreated
+                }//jwt: jwtCreated
+                
+                console.log('Antes de iniciar el envio de email');
+                const emailerService = EmailerService;
+                const emailSended = await emailerService.sendConfirmationEmail(registeredUser.email, registeredUser._id);
+                console.log('Email de confirmacion fue enviado?: '+emailSended);
+                if ( emailSended ) {
+                    userRegister.accountCreated = true;
+                    userRegister.userData = userAccount;
+                } else {
+                    userRegister.accountCreated = false;
+                    userRegister.userData = {message: 'Error to send confirmation email'};
                 }
-                userRegister.accountCreated = true;
-                userRegister.userData = userAccount;
+
             }
         } catch(error){
             console.log('Error al registrar el usuario: '+error);
@@ -154,20 +165,30 @@ class AuthService {
                     userType: registeredUser.userType
                 }
 
-                const jwtCreated = await this.createJWT(registeredUser._id);
+                /* const jwtCreated = await this.createJWT(registeredUser._id);
                 if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
                     console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
                     userLoginResponse.isAuthenticated = false;
                     userLoginResponse.user = {message: 'JWT is no created'};
                     return userLoginResponse;
-                }
+                } */
                 
                 const userAccount = {
                     user_data: userAccountDataToSend,
-                    jwt: jwtCreated
+                }//jwt: jwtCreated
+
+                console.log('Antes de iniciar el envio de email');
+                const emailerService = EmailerService;
+                const emailSended = await emailerService.sendConfirmationEmail(registeredUser.email, registeredUser._id);
+                console.log('Email de confirmacion fue enviado?: '+emailSended);
+                if ( emailSended ) {
+                    userRegister.accountCreated = true;
+                    userRegister.userData = userAccount;
+                } else {
+                    userRegister.accountCreated = false;
+                    userRegister.userData = {message: 'Error to send confirmation email'};
                 }
-                userRegister.accountCreated = true;
-                userRegister.userData = userAccount;
+
             }
         } catch(error){
             console.log('Error al registrar el usuario: '+error);

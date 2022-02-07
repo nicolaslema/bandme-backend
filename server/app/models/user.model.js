@@ -24,6 +24,10 @@ const UserSchema = Schema({
     },
     lastName: {
         type: String
+    },
+    accountStatus: {
+        type: String,
+        default: 'diseable'
     }
 
 });

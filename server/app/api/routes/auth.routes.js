@@ -3,7 +3,9 @@ const path = require('path');
 const { Router } = require('express');
 const { check } = require('express-validator');
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
-const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));//require('../controllers/auth.controller');
+const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
+const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
+
 //Passport Google
 require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
 //Passport Facebook
@@ -41,5 +43,11 @@ router.post('/google', passport.authenticate('google-verify-token'), validateEma
 
 //Facebook
 router.post('/facebook', passport.authenticate('facebook-token', {session: false}), validateEmailBySocialMedia);   
+
+//Confirm account
+router.post('/confirm/account', [
+    check('code', 'Code is required').not().isEmpty(),
+    validateRequestFields
+], confirmAccount);
 
 module.exports =  router;

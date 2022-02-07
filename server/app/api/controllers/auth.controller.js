@@ -1,6 +1,6 @@
 const { response } = require('express');
 const path = require('path');
-const AuthService = require(path.join(process.cwd(), 'app' ,'services', 'auth.service'));;//require('../../services/auth.service');
+const AuthService = require(path.join(process.cwd(), 'app' ,'services', 'auth.service'));
 
 const validateEmail = async (req, res = response) => {
     const { email } = req.body;
