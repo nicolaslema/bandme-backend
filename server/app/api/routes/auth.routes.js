@@ -2,6 +2,7 @@ const passport = require('passport');
 const path = require('path');
 const { Router } = require('express');
 const { check } = require('express-validator');
+const { DecodeUserToken } = require('../controllers/auth.controller');
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
 const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
 const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
@@ -12,10 +13,6 @@ require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
 const passportFacebook = require(path.join(process.cwd(), 'app' ,'config', 'passport-facebook'))//require('../../config/passport-facebook');
 
 const router = Router();
-
-router.get('/', (req, res)=>{
-    res.send('hola mundo')
-})
 
 //Check if exist email
 router.post('/validate/email', [
@@ -49,5 +46,10 @@ router.post('/confirm/account', [
     check('code', 'Code is required').not().isEmpty(),
     validateRequestFields
 ], confirmAccount);
+
+router.post('/validate/user-identity', [
+    check('token', 'Token is required').not().isEmpty(),
+    validateRequestFields
+], DecodeUserToken);
 
 module.exports =  router;

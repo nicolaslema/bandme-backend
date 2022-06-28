@@ -45,6 +45,21 @@ class AuthService {
         return validateUserExist;
     };
 
+    async decodeToken(token) {
+        let validateUserExist = {uid: "", user_exist: false};
+        try{
+            console.log('inicio de desenctriptacion de token actual service: ' + token);
+            const result = jwt.verify(token, process.env.JWT_SECRET);
+            console.log('valor del token: ' + JSON.stringify(result));
+            validateUserExist.uid = result.id;
+            validateUserExist.user_exist = true;
+        } catch (error){
+            console.log('fallo la desenctriptacion de token en service: ' + error);
+        }
+        return validateUserExist;
+    }
+
+
     async createJWT (userId){
         try {
             return jwt.sign({id: userId}, process.env.JWT_SECRET,{

@@ -91,6 +91,33 @@ const createAccount = async (req, res = response) => {
         }   
     };
 
+const DecodeUserToken = async(req, res = response) => {
+    const { token } = req.body;
+    console.log("El token recibido es: " + token);
+    try{
+        const authService = AuthService;
+        const userData = await authService.decodeToken(token);
+        console.log("User id obtenido: " + userData.uid);
+        if(userData.user_exist){
+            res.status(200).json({
+                uid: userData.uid,
+                user_exist: userData.user_exist,
+                message: 'User exist'
+            });
+        } else {
+            res.status(200).json({
+                uid: userData.uid,
+                user_exist: userData.user_exist,
+                message: 'User does not exist'
+            });
+        }
+    }catch(error){
+        console.log('Error al desencriptar token controller: '+ error);
+        res.status(404);
+    }
+}
+
+
 const validateEmailBySocialMedia = async (req, res = response) => {
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
     console.log('email de la request by social media: '+ email);
@@ -128,10 +155,6 @@ module.exports = {
     validateEmail,
     validateLoginByEmail,
     createAccount,
-    validateEmailBySocialMedia
+    validateEmailBySocialMedia,
+    DecodeUserToken
 }
-
-
-
-
-
