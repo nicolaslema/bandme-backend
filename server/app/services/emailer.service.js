@@ -5,6 +5,9 @@ const userCodeModel = require(path.join(process.cwd(), 'app' ,'models', 'user-co
 const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const jwt = require('jsonwebtoken');
+const userCodeResetModel = require('../models/user-code-reset.model');
+require("dotenv").config()
+const nodemailer = require("nodemailer");
 
 //https://mail.protonmail.com/
 
@@ -12,6 +15,14 @@ class EmailerService {
 
     constructor(){
         this.message = 'EmailerService instance created';
+        this.transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL,
+                pass: process.env.GMAIL_PASSWORD
+            },
+        });
+
     }
 
     generateConfirmationCode(){
@@ -20,12 +31,44 @@ class EmailerService {
         return code;
     }
    
+
+    async sendmail (mailOptions) {
+        const resp = await this.transporter.sendMail(mailOptions);
+        if(resp.rejected.length == 0){
+            return true;
+        }else{
+            return false
+        }
+        
+    }
+
+    async sendResetPasswordEmail(email, code) {
+        try {
+            let mailOptions = {
+                from: process.env.GMAIL,
+                to: email,
+                subject: 'Restablecer clave de su cuenta de Bandme',
+                html: `Para cambiar su clave por favor ingrese el siguiente codigo en la pantalla de reinicio de clave de la aplicación: ${code}`,
+            };
+            return await this.sendmail(mailOptions);
+        } catch (error) {
+            console.log('Error para enviar el mail de reinicio de clave: ' + error);
+            return false;
+        }
+    };
+
     async sendConfirmationEmail(email, userId) {
         console.log('Email al cual enviar el codigo de autenticacion: ' + email);
         console.log('User ID: ' + userId);
         try {
             const code = this.generateConfirmationCode();
-            const pm = await ProtonMail.connect({
+            let mailOptions = {
+                from: process.env.GMAIL,
+                to: email,
+                subject: 'Confirmar cuenta de Bandme',
+                html: `Para confirmar la creación de su cuenta por favor ingrese el siguiente codigo en la aplicación: ${code}`,
+            };
+            /* const pm = await ProtonMail.connect({
                 username: process.env.BANDME_EMAIL,
                 password: process.env.BANDME_EMAIL_PASS
             });
@@ -35,21 +78,25 @@ class EmailerService {
                 subject: 'Confirmar cuenta de Bandme',
                 body: `Para confirmar la creación de su cuenta por favor ingrese el siguiente codigo en la aplicación: ${code}`
             });
-            pm.close();
-
-            await this.associateCodeToUser(code, userId);
-
-            return true;
+            pm.close(); */
+            return await this.sendmail(mailOptions);
         } catch (error) {
             console.log('Error para enviar el mail de confirmacion: ' + error);
             return false;
         }
     }
 
-    async associateCodeToUser (code, userId) {
-        const userCode = new UserCode({userId, code});
-        const userCodeAssociated = await userCode.save();
-        console.log('Codigo y userId asociados: ' + JSON.stringify(userCodeAssociated));
+    async associateCodeToUser (code, userId, isResetPassword = false) {
+        if(!isResetPassword){
+            const userCode = new UserCode({userId, code});
+            const userCodeAssociated = await userCode.save();
+            console.log('Codigo y userId asociados: ' + JSON.stringify(userCodeAssociated));
+        }else{
+            const userCodeReset = new userCodeResetModel({userId, code});
+            const userCodeResetAssociated = await userCodeReset.save();
+            console.log('Codigo y userId asociados para el reinicio de clave: ' + JSON.stringify(userCodeResetAssociated));
+        }
+        
     }
 
     async confirmAccount (code) {

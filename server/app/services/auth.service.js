@@ -5,11 +5,133 @@ const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const EmailerService = require(path.join(process.cwd(), 'app' ,'services', 'emailer.service'));
+const userCodeResetModel = require('../models/user-code-reset.model');
 
 class AuthService {
     
     constructor(){
         this.message = 'AuthService instance created';
+    }
+
+    //10. Y asi se le va a permitir ingresar la nueva password dos veces y las va a enviar a un nuevo servicio de 'ResetPassword' con el JWT temporal
+    //10.1. Ese servicio va a tomar el JWT lo va a desenctriptar y va a obtener el id del usuario
+    async resetPassword(newPassword, userUid){
+        //11. Luego va a comparar las dos passwords y si coinciden las va a encriptar y las va a guardar
+        let resetPasswordResponse = {
+            wasUpdated: false,
+            jwt: '',
+            message: ''
+        }
+        try{
+            const hashPassword = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
+            await userModel.updateOne({_id: userUid}, {
+                password: hashPassword
+            });
+            console.log('Password actualizada, uid del usuario: ', userUid);
+            //12. Se va a generar un nuevo JWT y se va a enviar una respuesta de success junto con el JWT para que pueda ahi mismo iniciar la sesion
+            const jwtCreated = await this.createJWT(userUid);
+                if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                    console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                    resetPasswordResponse = {
+                        wasUpdated: true,
+                        jwt: '',
+                        message: 'Error al creaco jwt'
+                    }
+                } else {
+                    console.log('JWT creado exitosamente ->: '+ jwtCreated);
+                    resetPasswordResponse = {
+                        wasUpdated: true,
+                        jwt: jwtCreated,
+                        message: 'Password actualizada correctamente'
+                    }
+                }
+        }catch(error){
+            console.log('Error al actualizar la password: ', error);
+            resetPasswordResponse = {
+                wasUpdated: false,
+                jwt: '',
+                message: ''
+            }
+        }
+        return resetPasswordResponse;
+    }
+
+
+    //5. El usuario va a ingresar ese codigo y lo va a enviar a un nuevo servicio que falta crear de 'ValidateResetPasswordCode'
+    async vlidateResetPasswordCode(resetCode){
+        let validateCode = {isValid: false, jwt: '', message: ''}
+        //6. Ese servicio va a tomar el codigo y va a ir a ver si existe en la base de datos y obtener el id del usuario asociado a ese codigo
+        const userCodeResetAssociated = await userCodeResetModel.findOne({code: resetCode});
+        console.log('codigo encontrado: ', userCodeResetAssociated);
+        //7. Si no es correcto devolver mensaje de error
+        if(userCodeResetAssociated.userId != undefined && userCodeResetAssociated.codeStatus == 'not used'){
+            console.log('true')
+            //9. Si es correcto al usuario se le va a generar un JWT momentaneo que contiene su id y se le va a 
+            //enviar en la respuesta
+            const jwtCreated = await this.createJWT(userCodeResetAssociated.userId);
+                if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                    console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                    validateCode = {
+                        isValid: true,
+                        jwt: jwtCreated,
+                        message: 'Codigo validado y error al generar jwt'
+                    }
+                } else {
+                    console.log('JWT creado exitosamente ->: '+ jwtCreated);
+                    validateCode = {
+                        isValid: true,
+                        jwt: jwtCreated,
+                        message: 'Codigo validado y jwt generado'
+                    }
+                }
+
+        }else{
+            console.log('false devolver error');
+            validateCode = {
+                isValid: false,
+                jwt: '',
+                message: 'Error al validar el codigo'
+            }
+        }
+        return validateCode;
+    }   
+
+    async validateExistEmailResetPassword(userEmail) {
+        //1. Validar si existe en la DB el email del usuario
+        let validateEmail = {emailValid: false, message: '', sentEmail: false};
+        try {
+            const {email, _id} = await userModel.findOne({email: userEmail});
+            console.log('Respuesta de email existente: ', email, ' // id del usuario: ', _id);
+            if(email != null && email != undefined && email == userEmail) {
+                //3. Si existe, primero debo generar un code-user-reset, un codigo asociado al usuario que tenga un status 
+                const emailerService = EmailerService;
+                const code = emailerService.generateConfirmationCode();
+                console.log('codigo generado para el reset password: ', code);
+                await emailerService.associateCodeToUser(code, _id, true);
+                //4. Una vez generado el codigo random y asociado al id del usuario en un nuevo documento, se lo tengo que enviar por email
+                const result = await emailerService.sendResetPasswordEmail(email, code);
+                if(result){
+                    validateEmail = {emailValid: true, message: 'Se envio el mail para restrablecer la clave', sentEmail: true};
+                }else{
+                    validateEmail = {emailValid: true, message: 'No se envio el mail para restrablecer la clave', sentEmail: false};
+                }
+            }else{
+            //2. Si no existe devolver mensaje de error 'email no valido' o algo asi
+                validateEmail = {
+                    emailValid: false,
+                    message: 'No es un email autenticado',
+                    sentEmail: false
+                }
+            }   
+        }catch(error){
+            console.log('Error al buscar el email en la base de datos: ', error);
+            validateEmail = {
+                emailValid: false,
+                message: 'No se pudo realizar la busqueda del email',
+                sentEmail: false
+            }
+        }
+        return validateEmail;
     }
 
     async validateExistEmail(validateEmail) {
@@ -81,7 +203,7 @@ class AuthService {
         let userLoginResponse = {isAuthenticated: false, user: {}};
         console.log("email y pass para buscar en la base: "+validateEmail+"//"+validatePassword);
         const userData = await userModel.findOne({email: validateEmail});
-        console.log('usuario encontrado en la base: '+ userData.password);
+        console.log('usuario encontrado en la base: '+ userData);
         //1 verifico si existe el email en la base para saber si es un login o un registro
         if (userData != null && userData.email == validateEmail) {
             //2.bis si exite es un login, entonces tengo que comparar las passwords la que llega y la que esta en la base
@@ -122,7 +244,8 @@ class AuthService {
         let userRegister = { accountCreated: false, userData: {} }
         try {
             if(email != null && password != null && userType != null){
-                const user = new User({email, password, userType, provider});
+                const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
+                const user = new User({email, hashPassword, userType, provider});
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser);
                 const userAccountDataToSend = {

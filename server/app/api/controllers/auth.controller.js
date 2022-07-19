@@ -151,10 +151,108 @@ const validateEmailBySocialMedia = async (req, res = response) => {
     
 };
 
+const validateEmaiResetPassword = async (req, res = response) => {
+    const { email } = req.body;
+    console.log('email de la request: '+ email);
+    const authService = AuthService;
+    const validateEmailExist = await authService.validateExistEmailResetPassword(email);
+    try{
+        if ( validateEmailExist.emailValid && validateEmailExist.sentEmail){
+            res.status(200).json({
+                emailValid: validateEmailExist.emailValid,
+                message: validateEmailExist.message,
+                sentEmail: validateEmailExist.sentEmail
+            });
+        } else {
+            res.status(400).json({
+                emailValid: validateEmailExist.emailValid,
+                message: validateEmailExist.message,
+                sentEmail: validateEmailExist.sentEmail
+            });
+        }
+    } catch (error) {
+        console.log('Catch: Error al validar si existe el email');
+        res.status(500).json({
+            emailValid: false,
+            message: 'Email validation failed',
+            sentEmail: false
+        });
+    }
+};
+
+const validateResetCode = async (req, res = response) => {
+    const { code } = req.body;
+    console.log('code de la request: '+ code);
+    const authService = AuthService;
+    const validateResetCode = await authService.validateResetPasswordCode(code);
+    try{
+        if (validateResetCode.isValid){
+            res.status(200).json({
+                isValid: validateResetCode.isValid,
+                jwt: validateResetCode.jwt,
+                message: validateResetCode.message
+            });
+        } else {
+            res.status(400).json({
+                isValid: validateResetCode.isValid,
+                jwt: validateResetCode.jwt,
+                message: validateResetCode.message
+            });
+        }
+    } catch (error) {
+        console.log('Catch: Error al validar si existe el email');
+        res.status(500).json({
+            isValid: false,
+            jwt: '',
+            message: 'Error al recibir el codigo'
+        });
+    }
+};
+
+const userResetPassword = async (req, res = response) => {
+    const token = req.headers['auth-token'];
+    const { newPassword } = req.body;
+    const authService = AuthService;
+    const {uid} = await authService.decodeToken(token);
+    console.log("User id obtenido: " + uid);
+    const validateResetPassword = await authService.resetPassword(newPassword, uid);
+    /* resetPasswordResponse = {
+        wasUpdated: true,
+        jwt: jwtCreated,
+        message: 'Password actualizada correctamente'
+    } */
+    try{
+        if (validateResetPassword.wasUpdated){
+            res.status(200).json({
+                wasUpdated: validateResetPassword.wasUpdated,
+                jwt: validateResetPassword.jwt,
+                message: validateResetPassword.message
+            });
+        } else {
+            res.status(400).json({
+                wasUpdated: validateResetPassword.wasUpdated,
+                jwt: validateResetPassword.jwt,
+                message: validateResetPassword.message
+            });
+        }
+    } catch (error) {
+        console.log('Catch: Error al validar si existe el email');
+        res.status(500).json({
+            wasUpdated: false,
+            jwt: '',
+            message: 'No se pudo realizar el reinicio de clave'
+        });
+    }
+};
+
+
 module.exports = {
     validateEmail,
     validateLoginByEmail,
     createAccount,
     validateEmailBySocialMedia,
-    DecodeUserToken
+    DecodeUserToken,
+    validateEmaiResetPassword,
+    validateResetCode,
+    userResetPassword
 }

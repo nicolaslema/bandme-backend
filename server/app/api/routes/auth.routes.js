@@ -2,7 +2,7 @@ const passport = require('passport');
 const path = require('path');
 const { Router } = require('express');
 const { check } = require('express-validator');
-const { DecodeUserToken } = require('../controllers/auth.controller');
+const { DecodeUserToken, validateEmaiResetPassword, validateResetCode, userResetPassword } = require('../controllers/auth.controller');
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
 const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
 const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
@@ -51,5 +51,22 @@ router.post('/validate/user-identity', [
     check('token', 'Token is required').not().isEmpty(),
     validateRequestFields
 ], DecodeUserToken);
+
+
+router.post('/validate/email-reset', [
+    check('email', 'Email is required').not().isEmpty(),
+    validateRequestFields
+], validateEmaiResetPassword);
+
+router.post('/validate/email-code', [
+    check('code', 'Code is required').not().isEmpty(),
+    validateRequestFields
+], validateResetCode);
+
+router.post('/validate/reset-password', [
+    check('auth-token', 'Token is required').not().isEmpty(),
+    check('newPassword', 'New password is required').not().isEmpty(),
+    validateRequestFields
+], userResetPassword);
 
 module.exports =  router;
