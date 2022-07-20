@@ -66,6 +66,12 @@ class AuthService {
         //7. Si no es correcto devolver mensaje de error
         if(userCodeResetAssociated.userId != undefined && userCodeResetAssociated.codeStatus == 'not used'){
             console.log('true')
+            const updateCode = await userCodeResetModel.updateOne({_id: userCodeResetAssociated._id}, {
+                codeStatus: 'used'
+            });
+            console.log('Codigo actualizado: ', updateCode);
+            
+            //usar codigo
             //9. Si es correcto al usuario se le va a generar un JWT momentaneo que contiene su id y se le va a 
             //enviar en la respuesta
             const jwtCreated = await this.createJWT(userCodeResetAssociated.userId);

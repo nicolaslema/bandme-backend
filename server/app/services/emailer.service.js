@@ -5,7 +5,7 @@ const userCodeModel = require(path.join(process.cwd(), 'app' ,'models', 'user-co
 const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const jwt = require('jsonwebtoken');
-const userCodeResetModel = require('../models/user-code-reset.model');
+const UserCodeReset = require('../models/user-code-reset.model');
 require("dotenv").config()
 const nodemailer = require("nodemailer");
 
@@ -92,8 +92,12 @@ class EmailerService {
             const userCodeAssociated = await userCode.save();
             console.log('Codigo y userId asociados: ' + JSON.stringify(userCodeAssociated));
         }else{
-            const userCodeReset = new userCodeResetModel({userId, code});
+            const userCodeReset = new UserCodeReset({userId, code});
             const userCodeResetAssociated = await userCodeReset.save();
+
+            const datos = await UserCodeReset.findOne({code: code});
+            console.log("VALOOOR: ", datos)
+            
             console.log('Codigo y userId asociados para el reinicio de clave: ' + JSON.stringify(userCodeResetAssociated));
         }
         
