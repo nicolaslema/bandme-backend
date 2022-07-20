@@ -58,7 +58,7 @@ class AuthService {
 
 
     //5. El usuario va a ingresar ese codigo y lo va a enviar a un nuevo servicio que falta crear de 'ValidateResetPasswordCode'
-    async vlidateResetPasswordCode(resetCode){
+    async validateResetPasswordCode(resetCode){
         let validateCode = {isValid: false, jwt: '', message: ''}
         //6. Ese servicio va a tomar el codigo y va a ir a ver si existe en la base de datos y obtener el id del usuario asociado a ese codigo
         const userCodeResetAssociated = await userCodeResetModel.findOne({code: resetCode});
@@ -239,18 +239,18 @@ class AuthService {
         return userLoginResponse;
     };
 
-    async createAccountByEmail(email, password, userType, provider) {
-        console.log('datos del usuario para registrar: '+ email+"/"+password+"/"+userType);
+    async createAccountByEmail(email, newPassword, user_type, provider) {
+        console.log('datos del usuario para registrar: '+ email+"/"+newPassword+"/"+user_type);
         let userRegister = { accountCreated: false, userData: {} }
         try {
-            if(email != null && password != null && userType != null){
-                const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-                const user = new User({email, hashPassword, userType, provider});
+            if(email != null && newPassword != null && user_type != null){
+                const password = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
+                const user = new User({email, password, user_type, provider});
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser);
                 const userAccountDataToSend = {
                     email: registeredUser.email,
-                    userType: registeredUser.userType
+                    userType: registeredUser.user_type
                 }
 
                 /* const jwtCreated = await this.createJWT(registeredUser._id);
@@ -286,21 +286,21 @@ class AuthService {
         return userRegister;
     };
 
-    async createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName) {
-        console.log('datos del usuario para registrar: '+ email+"/"+provider+"/"+userType+"/"+profilePhoto+"/"+firstName+"/"+lastName);
+    async createAccountBySocialMedia(email, provider, user_type, profile_photo, first_name, last_name) {
+        console.log('datos del usuario para registrar: '+ email+"/"+provider+"/"+user_type+"/"+profile_photo+"/"+first_name+"/"+last_name);
         let userRegister = { accountCreated: false, userData: {} }
         try {
-            if(email != null && provider != null && userType != null){
-                const user = new User({email, userType, provider, profilePhoto, firstName, lastName});
+            if(email != null && provider != null && user_type != null){
+                const user = new User({email, user_type, provider, profile_photo, first_name, last_name});
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser +" // ");
                 const userAccountDataToSend = {
                     email: registeredUser.email,
-                    profilePhoto: registeredUser.profilePhoto,
-                    firstName: registeredUser.firstName,
-                    lastName: registeredUser.lastName,
+                    profilePhoto: registeredUser.profile_photo,
+                    firstName: registeredUser.first_name,
+                    lastName: registeredUser.last_name,
                     provider: registeredUser.provider,
-                    userType: registeredUser.userType
+                    userType: registeredUser.user_type
                 }
 
                 /* const jwtCreated = await this.createJWT(registeredUser._id);
