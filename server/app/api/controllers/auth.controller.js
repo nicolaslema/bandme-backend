@@ -212,37 +212,44 @@ const validateResetCode = async (req, res = response) => {
 const userResetPassword = async (req, res = response) => {
     const token = req.headers['auth-token'];
     const { newPassword } = req.body;
+    console.log("nueva password: ", newPassword);
     const authService = AuthService;
-    const {uid} = await authService.decodeToken(token);
-    console.log("User id obtenido: " + uid);
-    const validateResetPassword = await authService.resetPassword(newPassword, uid);
-    /* resetPasswordResponse = {
-        wasUpdated: true,
-        jwt: jwtCreated,
-        message: 'Password actualizada correctamente'
-    } */
-    try{
-        if (validateResetPassword.wasUpdated){
-            res.status(200).json({
-                wasUpdated: validateResetPassword.wasUpdated,
-                jwt: validateResetPassword.jwt,
-                message: validateResetPassword.message
-            });
-        } else {
-            res.status(400).json({
-                wasUpdated: validateResetPassword.wasUpdated,
-                jwt: validateResetPassword.jwt,
-                message: validateResetPassword.message
+    if(token != undefined){
+        try{
+            const {uid} = await authService.decodeToken(token);
+            console.log("User id obtenido: " + uid);
+            if(uid != '' && uid != undefined && uid != null){
+                const validateResetPassword = await authService.resetPassword(newPassword, uid);
+                console.log('RESPUESTA FINAL: ', validateResetPassword);
+                if (validateResetPassword.wasUpdated){
+                    res.status(200).json({
+                        wasUpdated: validateResetPassword.wasUpdated,
+                        jwt: validateResetPassword.jwt,
+                        message: validateResetPassword.message
+                    });
+                } else {
+                    res.status(400).json({
+                        wasUpdated: validateResetPassword.wasUpdated,
+                        jwt: validateResetPassword.jwt,
+                        message: validateResetPassword.message
+                    });
+                }
+            }else{
+                console.log('No se pudo autenticar la identidad por que el token es incorrecto ');
+                return res.status(500).json({
+                    message: 'No se pudo autenticar la identidad'
+                });
+            }
+        }catch(error){
+            console.log('Catch: Error al validar si existe el email');
+            res.status(500).json({
+                wasUpdated: false,
+                jwt: '',
+                message: 'No se pudo realizar el reinicio de clave'
             });
         }
-    } catch (error) {
-        console.log('Catch: Error al validar si existe el email');
-        res.status(500).json({
-            wasUpdated: false,
-            jwt: '',
-            message: 'No se pudo realizar el reinicio de clave'
-        });
     }
+
 };
 
 

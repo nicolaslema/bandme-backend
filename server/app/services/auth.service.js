@@ -23,6 +23,7 @@ class AuthService {
             message: ''
         }
         try{
+            console.log('newPassword: ', newPassword, ' // user id: ', userUid)
             const hashPassword = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
             await userModel.updateOne({_id: userUid}, {
                 password: hashPassword
@@ -231,7 +232,7 @@ class AuthService {
                     jwt: jwtCreated
                 }
                 userLoginResponse.isAuthenticated = true;
-                userLoginResponse.user = userAuthenticated;
+                userLoginResponse.user = {userAuthenticated};
             } else {
                 //4 si no coinciden devuelvo error con mensaje passwords no coinciden
                 userLoginResponse.isAuthenticated = false;
