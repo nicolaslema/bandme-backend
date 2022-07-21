@@ -1,4 +1,8 @@
-require('dotenv').config()
+const Server = require('./app/config/server');
+
+const server = new Server();
+server.listen();
+/* require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
@@ -55,10 +59,11 @@ app.use(function (req, res, next) {
 
 //@desc ruta inicial
 //@route USE /api/1.0/
-app.use('/api/1.0' ,require('./app/routes'))
+app.use('/api/1.0' ,require('./app/api/routes'))
 
 connectDB()
 app.listen(PORT, ()=>{
     console.log('API lista, PORT', PORT)
 })
 
+ */
