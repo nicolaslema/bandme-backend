@@ -68,6 +68,8 @@ class EmailerService {
                 subject: 'Confirmar cuenta de Bandme',
                 html: `Para confirmar la creación de su cuenta por favor ingrese el siguiente codigo en la aplicación: ${code}`,
             };
+
+            this.associateCodeToUser(code, userId, false)
             /* const pm = await ProtonMail.connect({
                 username: process.env.BANDME_EMAIL,
                 password: process.env.BANDME_EMAIL_PASS

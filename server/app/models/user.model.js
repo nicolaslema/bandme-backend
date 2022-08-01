@@ -49,7 +49,7 @@ const UserSchema = Schema({
     },
     account_status: {
         type: String,
-        default: 'enable'
+        default: 'disable'
     }
 });
 
