@@ -152,7 +152,10 @@ class EmailerService {
 
     async updateAccountStatus(userId){
         try{
-            const userData = await userModel.findOneAndUpdate({_id: userId}, { accountStatus: 'enable' }, {new: true});
+            //const userData = await userModel.findOneAndUpdate({_id: userId}, { account_status: 'enable' }, {new: true});
+            const userData = await userModel.updateOne({_id: userId}, {
+                account_status: 'enable'
+            });
             console.log('accountStatus para confirmar cuenta: '+ JSON.stringify(userData));
             return true;
         } catch (error) {
