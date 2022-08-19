@@ -134,7 +134,7 @@ class AuthService {
             console.log('Error al buscar el email en la base de datos: ', error);
             validateEmail = {
                 emailValid: false,
-                message: 'No se pudo realizar la busqueda del email',
+                message: 'No se pudo encontrar el email ingresado',
                 sentEmail: false
             }
         }
