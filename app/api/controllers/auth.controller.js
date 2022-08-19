@@ -164,7 +164,7 @@ const validateEmaiResetPassword = async (req, res = response) => {
                 sentEmail: validateEmailExist.sentEmail
             });
         } else {
-            res.status(400).json({
+            res.status(200).json({
                 emailValid: validateEmailExist.emailValid,
                 message: validateEmailExist.message,
                 sentEmail: validateEmailExist.sentEmail
