@@ -20,7 +20,7 @@ const confirmAccount = async (req, res = response) => {
         } else {
             res.status(200).json({
                 isConfirm: false,
-                message: 'Else controller: Confirm account was failed'
+                message: accountConfirmed.message
             });
         }
     } catch (error) {

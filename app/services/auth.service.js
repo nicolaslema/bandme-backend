@@ -142,26 +142,39 @@ class AuthService {
     }
 
     async validateExistEmail(validateEmail) {
-        let validateUserExist = {existEmail: false, jwt: ""};
+        let validateUserExist = {existEmail: false, jwt: "", finishRegister: false};
         try {
             console.log("email antes de consultar la base: "+ validateEmail);
             const user = await userModel.findOne({email: validateEmail});
+            const { account_status, email, _id } = user;
             if (user != null && user.email == validateEmail) {
-                console.log("email encontrado luego de consultar la base: "+ user);
-                console.log('id de mongo del usuario: ' + user._id);
-
-                const jwtCreated = await this.createJWT(user._id);
-                if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
-                    console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
-                    validateUserExist.existEmail = false;
-                    validateUserExist.jwt = "Error al generar jwt";
-                    return validateUserExist;
-                } else {
-                    validateUserExist.existEmail = true;
-                    validateUserExist.jwt = jwtCreated;
+                if(account_status == "enable"){
+                    console.log("email encontrado luego de consultar la base: "+ user);
+                    console.log('id de mongo del usuario: ' + user._id);
+                    const jwtCreated = await this.createJWT(user._id);
+                    if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                        console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                        validateUserExist.existEmail = false;
+                        validateUserExist.jwt = "Error al generar jwt";
+                        return validateUserExist;
+                    } else {
+                        validateUserExist.existEmail = true;
+                        validateUserExist.jwt = jwtCreated;
+                    }
+                }else{
+                    //enviar mail
+                    console.log('Antes de iniciar el envio de email');
+                    const emailerService = EmailerService;
+                    const emailSended = await emailerService.sendConfirmationEmail(email, _id);
+                    console.log('Email de confirmacion fue enviado?: '+emailSended);
+                    if ( emailSended ) {
+                        validateUserExist.finishRegister = true
+                    } else {
+                        validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
+                    }
                 }
             } else{
-                console.log("email encontrado luego de consultar la base else: "+ user);
+                console.log("email no encontrado luego de consultar la base else: "+ user);
                 validateUserExist.existEmail = false;
                 validateUserExist.jwt = "";
             }
@@ -322,7 +335,7 @@ class AuthService {
                     user_data: userAccountDataToSend,
                 }//jwt: jwtCreated
 
-                console.log('Antes de iniciar el envio de email');
+                console.log('Antes de iniciar el envio de email: REGISTERED USER DATA: '+registeredUser);
                 const emailerService = EmailerService;
                 const emailSended = await emailerService.sendConfirmationEmail(registeredUser.email, registeredUser._id);
                 console.log('Email de confirmacion fue enviado?: '+emailSended);
