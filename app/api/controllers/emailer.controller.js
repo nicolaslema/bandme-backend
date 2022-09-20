@@ -23,7 +23,7 @@ const confirmAccount = async (req, res = response) => {
             res.status(200).json({
                 isConfirm: false,
                 message: accountConfirmed.message,
-                isEmailAssociated: accountConfirmed.isEmailAssociated
+                emailWrong: accountConfirmed.emailWrong
             });
         }
     } catch (error) {

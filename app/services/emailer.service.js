@@ -107,14 +107,14 @@ class EmailerService {
     }
 
     async confirmAccount (code, userEmail) {
-        let confirmAccountResponse = {isConfirm: false, message: '', jwt: '', isEmailAssociated: ''};
+        let confirmAccountResponse = {isConfirm: false, message: '', jwt: '', emailWrong: false};
         try {
             const userData = await this.updateCodeStatus(code, userEmail);
 
             if(userData.isValid == true){
                 const isReadyToJwt = await this.updateAccountStatus(userData.data);
                 if(isReadyToJwt == true){
-                    const jwtCreated = await this.createJWT(userId);
+                    const jwtCreated = await this.createJWT(userData.data);
                     if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
                         console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
                         confirmAccountResponse = {
@@ -153,7 +153,7 @@ class EmailerService {
                         isConfirm: false,
                         jwt: "",
                         message: 'El codigo no esta asociado al email',
-                        isEmailAssociated: false
+                        emailWrong: true
                     }
                 }
                 else{
@@ -206,7 +206,7 @@ class EmailerService {
                 }else{
                     console.log("CAYO EN VALIDAR");
                     //valido que el userid traiga el email y sea igual al email que mandaron por request, sino rebotar
-                    const user = await userModel.findById(userId);
+                    const user = await userModel.findById(userCodeData.userId);
                     const { email } = user;
                     if(email == userEmail){
                         const userCodeData = await userCodeModel.findOneAndUpdate({code: code}, { codeStatus: 'used' }, {new: true});
@@ -223,7 +223,7 @@ class EmailerService {
                             isValid: false,
                             data: "",
                             isUsed: false,
-                            isEmailValid: "El email no esta asoaciado con el codigo"
+                            isEmailValid: "El email no esta asociado con el codigo"
                         }
                     }
                 }
