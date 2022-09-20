@@ -107,7 +107,7 @@ class EmailerService {
     }
 
     async confirmAccount (code, userEmail) {
-        let confirmAccountResponse = {isConfirm: false, message: '', jwt: '', isEmailAssociated: ''};
+        let confirmAccountResponse = {isConfirm: false, message: '', jwt: '', emailWrong: false};
         try {
             const userData = await this.updateCodeStatus(code, userEmail);
 
@@ -153,7 +153,7 @@ class EmailerService {
                         isConfirm: false,
                         jwt: "",
                         message: 'El codigo no esta asociado al email',
-                        isEmailAssociated: false
+                        emailWrong: true
                     }
                 }
                 else{
