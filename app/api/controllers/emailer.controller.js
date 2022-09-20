@@ -4,12 +4,14 @@ const EmailerService = require(path.join(process.cwd(), 'app' ,'services', 'emai
 
 const confirmAccount = async (req, res = response) => {
     const { code } = req.body;
+    const { email } = req.body;
     console.log('code request: '+ code);
+    console.log('email request: '+ email);
     
     try{
         const emailerService = EmailerService;
         console.log(emailerService.message);
-        const accountConfirmed = await emailerService.confirmAccount(code);
+        const accountConfirmed = await emailerService.confirmAccount(code, email);
         console.log('UserCodeData en controller: '+ JSON.stringify(accountConfirmed));    
         if (accountConfirmed.isConfirm) {
             res.status(200).json({
@@ -20,7 +22,8 @@ const confirmAccount = async (req, res = response) => {
         } else {
             res.status(200).json({
                 isConfirm: false,
-                message: accountConfirmed.message
+                message: accountConfirmed.message,
+                isEmailAssociated: accountConfirmed.isEmailAssociated
             });
         }
     } catch (error) {

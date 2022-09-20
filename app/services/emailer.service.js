@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const UserCodeReset = require('../models/user-code-reset.model');
 require("dotenv").config()
 const nodemailer = require("nodemailer");
+const e = require('express');
 
 //https://mail.protonmail.com/
 
@@ -105,10 +106,10 @@ class EmailerService {
         
     }
 
-    async confirmAccount (code) {
-        let confirmAccountResponse = {isConfirm: false, message: ''};
+    async confirmAccount (code, userEmail) {
+        let confirmAccountResponse = {isConfirm: false, message: '', jwt: '', isEmailAssociated: ''};
         try {
-            const userData = await this.updateCodeStatus(code);
+            const userData = await this.updateCodeStatus(code, userEmail);
 
             if(userData.isValid == true){
                 const isReadyToJwt = await this.updateAccountStatus(userData.data);
@@ -147,7 +148,15 @@ class EmailerService {
                         jwt: "",
                         message: 'Confirm account was failed. Code is not valid'
                     }
-                }else{
+                } else if(userData.isEmailValid != ""){
+                    confirmAccountResponse = {
+                        isConfirm: false,
+                        jwt: "",
+                        message: 'El codigo no esta asociado al email',
+                        isEmailAssociated: false
+                    }
+                }
+                else{
                     confirmAccountResponse = {
                         isConfirm: false,
                         jwt: "",
@@ -165,22 +174,24 @@ class EmailerService {
         }
     }
 
-    async updateCodeStatus(code){
+    async updateCodeStatus(code, userEmail){
         try{
             const userCodeData = await userCodeModel.findOne({code: code});
             console.log("USER CODE DATA: " + userCodeData);
             let response = {
                 isValid: false,
                 data: "",
-                isUsed: false
+                isUsed: false,
+                isEmailValid: ""
             };
 
             if(userCodeData == null){
-                console.log("CAYO EN NULL");
+                console.log("user code data NULL");
                 response = {
                     isValid: false,
                     data: "null",
-                    isUsed: false
+                    isUsed: false,
+                    isEmailValid: ""
                 }
             }else{
                 const { codeStatus }  = userCodeData;
@@ -189,17 +200,31 @@ class EmailerService {
                     response = {
                         isValid: false,
                         data: "",
-                        isUsed: true
+                        isUsed: true,
+                        isEmailValid: ""
                     }
                 }else{
                     console.log("CAYO EN VALIDAR");
-                    const userCodeData = await userCodeModel.findOneAndUpdate({code: code}, { codeStatus: 'used' }, {new: true});
-                    console.log('codeStatus para confirmar cuenta: '+ JSON.stringify(userCodeData));
-                    console.log('id del usuario para buscar: ' + userCodeData.userId);
-                    response = {
-                        isValid: true,
-                        data: userCodeData.userId,
-                        isUsed: false
+                    //valido que el userid traiga el email y sea igual al email que mandaron por request, sino rebotar
+                    const user = await userModel.findById(userId);
+                    const { email } = user;
+                    if(email == userEmail){
+                        const userCodeData = await userCodeModel.findOneAndUpdate({code: code}, { codeStatus: 'used' }, {new: true});
+                        console.log('codeStatus para confirmar cuenta: '+ JSON.stringify(userCodeData));
+                        console.log('id del usuario para buscar: ' + userCodeData.userId);
+                        response = {
+                            isValid: true,
+                            data: userCodeData.userId,
+                            isUsed: false,
+                            isEmailValid: ""
+                        }
+                    }else{
+                        response = {
+                            isValid: false,
+                            data: "",
+                            isUsed: false,
+                            isEmailValid: "El email no esta asoaciado con el codigo"
+                        }
                     }
                 }
             }
