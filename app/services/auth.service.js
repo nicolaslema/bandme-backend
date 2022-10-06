@@ -265,7 +265,7 @@ class AuthService {
         try {
             if(email != null && newPassword != null && user_type != null){
                 const password = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
-                const user = new User({email, password, user_type, provider});
+                const user = new User({email, password, user_type, provider, isPremium: false});
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser);
                 const userAccountDataToSend = {
