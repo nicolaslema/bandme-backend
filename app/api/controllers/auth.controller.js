@@ -123,7 +123,7 @@ const DecodeUserToken = async(req, res = response) => {
 
 const validateEmailBySocialMedia = async (req, res = response) => {
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
-    console.log('email de la request by social media: '+ email);
+    console.log('email de la request by social media: '+ email, profilePhoto, firstName, lastName, provider);
     try{
         const authService = AuthService;
         const validateUserExist = await authService.validateExistEmail(email);
@@ -139,11 +139,11 @@ const validateEmailBySocialMedia = async (req, res = response) => {
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
                 user_data: {
-                    email,
-                    profilePhoto, 
-                    firstName, 
-                    lastName,
-                    provider
+                    email: email,
+                    profilePhoto: profilePhoto, 
+                    firstName: firstName, 
+                    lastName: lastName,
+                    provider: provider
                 },
                 finishRegister: validateUserExist.finishRegister,
                 message: validateUserExist.message
