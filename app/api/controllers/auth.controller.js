@@ -1,6 +1,8 @@
 const { response } = require('express');
 const path = require('path');
 const AuthService = require(path.join(process.cwd(), 'app' ,'services', 'auth.service'));
+const logger = require('heroku-logger')
+
 
 const validateEmail = async (req, res = response) => {
     const { email } = req.body;
@@ -151,6 +153,8 @@ const validateEmailBySocialMedia = async (req, res = response) => {
         }
     }catch (error) {
         console.log('Error al iniciar el servicio de validacion de email by social media: '+ error);
+        logger.info('Error al iniciar el servicio de validacion de email by social media: ', error)
+
         res.status(404);
     }
     
