@@ -6,6 +6,7 @@ const { DecodeUserToken, validateEmaiResetPassword, validateResetCode, userReset
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
 const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
 const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
+const logger = require('heroku-logger')
 
 //Passport Google
 require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
@@ -36,7 +37,10 @@ router.post('/create/account', [
 ], createAccount);
 
 //Google
-router.post('/google', passport.authenticate('google-verify-token'), validateEmailBySocialMedia);
+router.post('/google', passport.authenticate('google-verify-token'), function(req, res){
+    logger.info('GOOGLE ========>  ', req.user)
+
+});//validateEmailBySocialMedia
 
 //Facebook
 router.post('/facebook', passport.authenticate('facebook-token', {session: false}), validateEmailBySocialMedia);   
