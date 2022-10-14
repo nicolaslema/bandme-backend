@@ -124,6 +124,7 @@ const DecodeUserToken = async(req, res = response) => {
 
 
 const validateEmailBySocialMedia = async (req, res = response) => {
+    logger.info("GOOOGLEEEE: "+ JSON.stringify(req.user))
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
     console.log('email de la request by social media: '+ email, profilePhoto, firstName, lastName, provider);
     try{
