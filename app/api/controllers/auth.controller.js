@@ -132,7 +132,8 @@ const validateEmailBySocialMedia = async (req, res = response) => {
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
                 message: 'Email validated',
-                jwt: validateUserExist.jwt
+                jwt: validateUserExist.jwt,
+                finishRegister: validateUserExist.finishRegister
             });
         } else {
             res.status(200).json({
@@ -144,7 +145,8 @@ const validateEmailBySocialMedia = async (req, res = response) => {
                     lastName,
                     provider
                 },
-                message: 'Email does not exist'
+                finishRegister: validateUserExist.finishRegister,
+                message: validateUserExist.message
             });
         }
     }catch (error) {
