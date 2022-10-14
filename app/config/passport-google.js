@@ -10,7 +10,7 @@ module.exports = (passport) => {
     passport.use(
 
         new GoogleTokenStrategy({
-            clientID: '193465647450-44nmir3ssk2s214mp27i5m6ej1bbhpsl.apps.googleusercontent.com'//process.env.CLIENT_ID
+            clientID: process.env.CLIENT_ID
         },
             function(parsedToken, googleId, done) {
 

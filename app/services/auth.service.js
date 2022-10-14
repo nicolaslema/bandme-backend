@@ -168,7 +168,9 @@ class AuthService {
                     const emailSended = await emailerService.sendConfirmationEmail(email, _id);
                     console.log('Email de confirmacion fue enviado?: '+emailSended);
                     if ( emailSended ) {
-                        validateUserExist.finishRegister = true
+                        validateUserExist.finishRegister = true,
+                        //validateUserExist.existEmail = true,
+                        validateUserExist.message = "Se envio email para finalizar el registro"
                     } else {
                         validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
                     }
