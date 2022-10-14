@@ -146,8 +146,8 @@ class AuthService {
         try {
             console.log("email antes de consultar la base: "+ validateEmail);
             const user = await userModel.findOne({email: validateEmail});
-            const { account_status, email, _id } = user;
             if (user != null && user.email == validateEmail) {
+                const { account_status, email, _id } = user;
                 if(account_status == "enable"){
                     console.log("email encontrado luego de consultar la base: "+ user);
                     console.log('id de mongo del usuario: ' + user._id);
