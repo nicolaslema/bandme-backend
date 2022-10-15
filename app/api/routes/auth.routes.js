@@ -37,11 +37,7 @@ router.post('/create/account', [
 ], createAccount);
 
 //Google
-router.post('/google', passport.authenticate('google-verify-token'), function(req, res){
-    logger.warn('GOOGLE ========>  ', req.user)
-    res.send("Respuesta")
-
-});//validateEmailBySocialMedia
+router.post('/google', passport.authenticate('google-verify-token'), validateEmailBySocialMedia);
 
 //Facebook
 router.post('/facebook', passport.authenticate('facebook-token', {session: false}), validateEmailBySocialMedia);   
