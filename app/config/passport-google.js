@@ -15,6 +15,7 @@ module.exports = (passport) => {
             function(parsedToken, googleId, done) {
 
                 console.log('datos obtenidos de google: ' + parsedToken.email);
+                console.log('datos obtenidos de google ======> : ' + parsedToken);
 
             const user ={
                 firstName: parsedToken.given_name,
