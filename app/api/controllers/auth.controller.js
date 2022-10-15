@@ -154,10 +154,11 @@ const validateEmailBySocialMedia = async (req, res = response) => {
         }
     }catch (error) {
         console.log('Error al iniciar el servicio de validacion de email by social media: '+ error);
-        logger.info('Error al iniciar el servicio de validacion de email by social media: ', error)
-
-        res.status(404);
-    }
+        logger.warn('Error al iniciar el servicio de validacion de email by social media: ', error)
+        res.status(500).json({
+            message: "Fallo el logueo/registro por red social"
+        });
+    }   
     
 };
 
