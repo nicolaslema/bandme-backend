@@ -15,22 +15,24 @@ const validateEmail = async (req, res = response) => {
         if ( validateUserExist.existEmail ){
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
-                message: 'Email validated',
+                message: validateUserExist.message,
                 jwt: validateUserExist.jwt,
-                finish_register: validateUserExist.finishRegister
+                finish_register: validateUserExist.finishRegister,
+                isProviderError: validateUserExist.isProviderError
             });
         } else {
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
-                message: 'Email does not exist',
-                finish_register: validateUserExist.finishRegister
+                message: 'Email no existe o no fue encontrado',
+                finish_register: validateUserExist.finishRegister,
+                isProviderError: validateUserExist.isProviderError
             });
         }
     } catch (error) {
         console.log('Catch: Error al validar si existe el email');
         res.status(500).json({
             exist_email: false,
-            message: 'Email validation failed',
+            message: 'Validacion de email fallida',
             finish_register: false
         });
     }

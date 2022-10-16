@@ -142,39 +142,49 @@ class AuthService {
     }
 
     async validateExistEmail(validateEmail) {
-        let validateUserExist = {existEmail: false, jwt: "", finishRegister: false};
+        let validateUserExist = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: ""};
         try {
             console.log("email antes de consultar la base: "+ validateEmail);
             const user = await userModel.findOne({email: validateEmail});
             if (user != null && user.email == validateEmail) {
-                const { account_status, email, _id } = user;
-                if(account_status == "enable"){
-                    console.log("email encontrado luego de consultar la base: "+ user);
-                    console.log('id de mongo del usuario: ' + user._id);
-                    const jwtCreated = await this.createJWT(user._id);
-                    if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
-                        console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
-                        validateUserExist.existEmail = false;
-                        validateUserExist.jwt = "Error al generar jwt";
-                        return validateUserExist;
-                    } else {
-                        validateUserExist.existEmail = true;
-                        validateUserExist.jwt = jwtCreated;
+                const { account_status, email, _id, provider } = user;
+                if(provider == "EMAIL"){
+                    if(account_status == "enable"){
+                        console.log("email encontrado luego de consultar la base: "+ user);
+                        console.log('id de mongo del usuario: ' + user._id);
+                        const jwtCreated = await this.createJWT(user._id);
+                        if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                            console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                            validateUserExist.existEmail = false;
+                            validateUserExist.jwt = "";
+                            validateUserExist.message = "Error al generar jwt"
+                            return validateUserExist;
+                        } else {
+                            validateUserExist.existEmail = true;
+                            validateUserExist.jwt = jwtCreated;
+                            validateUserExist.message = "Email validado"
+                        }
+                    }else{
+                        //enviar mail
+                        console.log('Antes de iniciar el envio de email');
+                        const emailerService = EmailerService;
+                        const emailSended = await emailerService.sendConfirmationEmail(email, _id);
+                        console.log('Email de confirmacion fue enviado?: '+emailSended);
+                        if ( emailSended ) {
+                            validateUserExist.finishRegister = true,
+                            //validateUserExist.existEmail = true,
+                            validateUserExist.message = "Se envio email para finalizar el registro"
+                        } else {
+                            validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
+                        }
                     }
                 }else{
-                    //enviar mail
-                    console.log('Antes de iniciar el envio de email');
-                    const emailerService = EmailerService;
-                    const emailSended = await emailerService.sendConfirmationEmail(email, _id);
-                    console.log('Email de confirmacion fue enviado?: '+emailSended);
-                    if ( emailSended ) {
-                        validateUserExist.finishRegister = true,
-                        //validateUserExist.existEmail = true,
-                        validateUserExist.message = "Se envio email para finalizar el registro"
-                    } else {
-                        validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
-                    }
+                    console.log("Email registrado por un provider distinto a EMAIL: "+ user);
+                    validateUserExist.existEmail = true;
+                    validateUserExist.isProviderError = true;
+                    validateUserExist.message = "Email registrado a traves de Google o Spotify"
                 }
+                
             } else{
                 console.log("email no encontrado luego de consultar la base else: "+ user);
                 validateUserExist.existEmail = false;
