@@ -180,9 +180,19 @@ class AuthService {
                     }
                 }else{
                     console.log("Email registrado por un provider distinto a EMAIL: "+ user);
-                    validateUserExist.existEmail = true;
-                    validateUserExist.isProviderError = true;
-                    validateUserExist.message = "Email registrado a traves de Google o Spotify"
+                    const jwtCreated = await this.createJWT(user._id);
+                        if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                            console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
+                            validateUserExist.existEmail = false;
+                            validateUserExist.jwt = "";
+                            validateUserExist.message = "Error al generar jwt"
+                            return validateUserExist;
+                        } else {
+                            validateUserExist.existEmail = true;
+                            validateUserExist.jwt = jwtCreated;
+                            validateUserExist.isProviderError = true;
+                            validateUserExist.message = "Email registrado a traves de Google o Spotify"
+                        }
                 }
                 
             } else{
