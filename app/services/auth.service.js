@@ -6,11 +6,113 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const EmailerService = require(path.join(process.cwd(), 'app' ,'services', 'emailer.service'));
 const userCodeResetModel = require('../models/user-code-reset.model');
+const axios = require('axios').default;
 
 class AuthService {
     
     constructor(){
         this.message = 'AuthService instance created';
+    }
+
+    async validateSpotifyToken(token, provider){
+        let finalResponse = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", spotify_user_data: {}};
+        try{
+            const headersToken = {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer '+ token
+            }
+    
+            const {data:response} = await axios.get('https://api.spotify.com/v1/me', {
+                headers: headersToken
+            });
+
+            const loginResponse = await this.validateExistEmail(response.email);
+            if(loginResponse.existEmail == true){
+                finalResponse = {
+                    existEmail: loginResponse.existEmail,
+                    jwt: loginResponse.jwt,
+                    finishRegister: loginResponse.finishRegister,
+                    isProviderError: loginResponse.isProviderError,
+                    message: loginResponse.message
+                }
+            }else{
+                finalResponse = {
+                    existEmail: loginResponse.existEmail,
+                    jwt: loginResponse.jwt,
+                    finishRegister: loginResponse.finishRegister,
+                    isProviderError: loginResponse.isProviderError,
+                    message: loginResponse.message,
+                    spotify_user_data: {
+                        email: response.email,
+                        profilePhoto: response.images[0].url, 
+                        firstName: response.display_name,
+                        provider: provider
+                    }
+                }
+            }
+            
+        }catch(error){
+            console.log("Error catch obteniendo datos del usuario: " + error);
+            finalResponse = {
+                existEmail: false,
+                jwt: '',
+                finishRegister: false,
+                isProviderError: false,
+                message: "Ocurrió un error al buscar los datos del usuario en Spotify"
+            }
+        }
+        return finalResponse;
+    }
+
+    async validateSpotifyCode(code, provider){
+        let finalResponse = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", spotify_user_data: {}};
+        try{
+            const params = new URLSearchParams();
+            params.append('code', code);
+            params.append('grant_type', 'authorization_code');
+            params.append('redirect_uri', process.env.SPOTIFY_REDIRECT_URI);
+
+            const headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': process.env.AUTH_CODE_SPOTIFY
+            }
+
+            const {data:response} = await axios.post('https://accounts.spotify.com/api/token', params, {
+                headers: headers
+            });
+
+            if(response.access_token != undefined && response.access_token != null && response.access_token != ''){
+                console.log("spotify token ==> ", response.access_token);
+                const responseUserData = await this.validateSpotifyToken(response.access_token, provider);
+                finalResponse = {
+                    existEmail: responseUserData.existEmail,
+                    jwt: responseUserData.jwt,
+                    finishRegister: responseUserData.finishRegister,
+                    isProviderError: responseUserData.isProviderError,
+                    spotify_user_data: responseUserData.spotify_user_data,
+                    message: responseUserData.message
+                }
+            }else{
+                finalResponse = {
+                    existEmail: false,
+                    jwt: '',
+                    finishRegister: false,
+                    isProviderError: false,
+                    message: "Ocurrió un error con la autorización de Spotify"
+                }
+            }
+            
+        }catch(error){
+            console.log("Error buscando el token de spotify: " + error);
+            finalResponse = {
+                existEmail: false,
+                jwt: '',
+                finishRegister: false,
+                isProviderError: false,
+                message: "Ocurrió un error con la autenticación de Spotify"
+            }
+        }
+        return finalResponse;
     }
 
     //10. Y asi se le va a permitir ingresar la nueva password dos veces y las va a enviar a un nuevo servicio de 'ResetPassword' con el JWT temporal
@@ -180,7 +282,11 @@ class AuthService {
                     }
                 }else{
                     console.log("Email registrado por un provider distinto a EMAIL: "+ user);
-                    const jwtCreated = await this.createJWT(user._id);
+
+                    if(account_status == "enable"){
+                        console.log("email encontrado luego de consultar la base: "+ user);
+                        console.log('id de mongo del usuario: ' + user._id);
+                        const jwtCreated = await this.createJWT(user._id);
                         if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
                             console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
                             validateUserExist.existEmail = false;
@@ -193,6 +299,20 @@ class AuthService {
                             validateUserExist.isProviderError = true;
                             validateUserExist.message = "Email registrado a traves de Google o Spotify"
                         }
+                    }else{
+                        //enviar mail
+                        console.log('Antes de iniciar el envio de email');
+                        const emailerService = EmailerService;
+                        const emailSended = await emailerService.sendConfirmationEmail(email, _id);
+                        console.log('Email de confirmacion fue enviado?: '+emailSended);
+                        if ( emailSended ) {
+                            validateUserExist.finishRegister = true,
+                            //validateUserExist.existEmail = true,
+                            validateUserExist.message = "Se envio email para finalizar el registro"
+                        } else {
+                            validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
+                        }
+                    }
                 }
                 
             } else{
@@ -329,21 +449,38 @@ class AuthService {
     };
 
     async createAccountBySocialMedia(email, provider, user_type, profile_photo, first_name, last_name) {
-        console.log('datos del usuario para registrar: '+ email+"/"+provider+"/"+user_type+"/"+profile_photo+"/"+first_name+"/"+last_name);
+        console.log('datos del usuario para registrar: '+ email+"/"+provider+"/"+user_type);
+        const isPremium = false;
         let userRegister = { accountCreated: false, userData: {} }
         try {
+            let user;
             if(email != null && provider != null && user_type != null){
-                const user = new User({email, user_type, provider, profile_photo, first_name, last_name});
+                if(last_name != undefined && last_name != null && last_name != ''){
+                    user = new User({email, user_type, provider, profile_photo, first_name, last_name, isPremium});
+                }else{
+                    user = new User({email, user_type, provider, profile_photo, first_name, isPremium});
+                }
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser +" // ");
-                const userAccountDataToSend = {
-                    email: registeredUser.email,
-                    profilePhoto: registeredUser.profile_photo,
-                    firstName: registeredUser.first_name,
-                    lastName: registeredUser.last_name,
-                    provider: registeredUser.provider,
-                    userType: registeredUser.user_type
-                }
+                let userAccountDataToSend;
+                if(last_name != undefined && last_name != null && last_name != ''){
+                    userAccountDataToSend = {
+                        email: registeredUser.email,
+                        profilePhoto: registeredUser.profile_photo,
+                        firstName: registeredUser.first_name,
+                        lastName: registeredUser.last_name,
+                        provider: registeredUser.provider,
+                        userType: registeredUser.user_type
+                    }
+                }else{
+                    userAccountDataToSend = {
+                        email: registeredUser.email,
+                        profilePhoto: registeredUser.profile_photo,
+                        firstName: registeredUser.first_name,
+                        provider: registeredUser.provider,
+                        userType: registeredUser.user_type
+                    }
+                };
 
                 /* const jwtCreated = await this.createJWT(registeredUser._id);
                 if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
