@@ -69,7 +69,7 @@ const createAccount = async (req, res = response) => {
     console.log("email de la request: "+ email + "/ provider de la request: "+ provider + "/ userType de la request: "+ userType);
     let userRegister = {accountCreated: false};
     const authService = AuthService;
-    if(provider == "GOOGLE" || provider == "FACEBOOK"){
+    if(provider == "GOOGLE" || provider == "SPOTIFY"){
         const { profilePhoto, firstName, lastName } = req.body;
         userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
     } else {
@@ -124,11 +124,42 @@ const DecodeUserToken = async(req, res = response) => {
     }
 }
 
+const validateSpotifyCode = async(req, res = response) => {
+    const { code, provider } = req.body;
+    console.log("Codigo recibido: " + code);
+    try{
+        const authService = AuthService;
+        const validateUserExist = await authService.validateSpotifyCode(code, provider);
+        if(validateUserExist.existEmail){
+            res.status(200).json({
+                existEmail: validateUserExist.existEmail,
+                jwt: validateUserExist.jwt,
+                finishRegister: validateUserExist.finishRegister,
+                isProviderError: validateUserExist.isProviderError,
+                message: validateUserExist.message,
+                spotify_user_data: validateUserExist.spotify_user_data
+            });
+        } else {
+            res.status(200).json({
+                existEmail: validateUserExist.existEmail,
+                jwt: validateUserExist.jwt,
+                finishRegister: validateUserExist.finishRegister,
+                isProviderError: validateUserExist.isProviderError,
+                message: validateUserExist.message,
+                spotify_user_data: validateUserExist.spotify_user_data
+            });
+        }        
+    }catch(error){
+        console.log('Error al desencriptar token controller: '+ error);
+        res.status(404);
+    }
+}
+
 
 const validateEmailBySocialMedia = async (req, res = response) => {
     logger.info("CONTROLLER GOOOGLEEEE: "+ JSON.stringify(req.user))
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
-    console.log('email de la request by social media: '+ email, profilePhoto, firstName, lastName, provider);
+    //console.log('email de la request by social media: '+ email, profilePhoto, firstName, lastName, provider);
     try{
         const authService = AuthService;
         const validateUserExist = await authService.validateExistEmail(email);
@@ -136,7 +167,7 @@ const validateEmailBySocialMedia = async (req, res = response) => {
         if ( validateUserExist.existEmail ){
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
-                message: 'Email validated',
+                message: validateUserExist.message,
                 jwt: validateUserExist.jwt,
                 finishRegister: validateUserExist.finishRegister
             });
@@ -274,5 +305,6 @@ module.exports = {
     DecodeUserToken,
     validateEmaiResetPassword,
     validateResetCode,
-    userResetPassword
+    userResetPassword,
+    validateSpotifyCode
 }

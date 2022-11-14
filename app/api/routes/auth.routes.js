@@ -4,7 +4,7 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 const { DecodeUserToken, validateEmaiResetPassword, validateResetCode, userResetPassword } = require('../controllers/auth.controller');
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
-const { validateEmail, validateLoginByEmail, createAccount, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
+const { validateEmail, validateLoginByEmail, createAccount, validateSpotifyCode, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
 const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
 const logger = require('heroku-logger')
 
@@ -14,6 +14,8 @@ require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
 const passportFacebook = require(path.join(process.cwd(), 'app' ,'config', 'passport-facebook'))//require('../../config/passport-facebook');
 
 const router = Router();
+
+router.post('/spotify-code', validateSpotifyCode);
 
 //Check if exist email
 router.post('/validate/email', [
@@ -40,7 +42,7 @@ router.post('/create/account', [
 router.post('/google', passport.authenticate('google-verify-token'), validateEmailBySocialMedia);
 
 //Facebook
-router.post('/facebook', passport.authenticate('facebook-token', {session: false}), validateEmailBySocialMedia);   
+//router.post('/facebook', passport.authenticate('facebook-token', {session: false}), validateEmailBySocialMedia);   
 
 //Confirm account
 router.post('/confirm/account', [
