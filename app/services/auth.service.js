@@ -2,6 +2,7 @@ const path = require('path');
 const { httpError } = require(path.join(process.cwd(), 'app' ,'helpers', 'handleError'));
 const userModel = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
 const User = require(path.join(process.cwd(), 'app' ,'models', 'user.model'));
+const UserSpotifyCode = require(path.join(process.cwd(), 'app' ,'models', 'user-spotify'));
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const EmailerService = require(path.join(process.cwd(), 'app' ,'services', 'emailer.service'));
@@ -14,7 +15,7 @@ class AuthService {
         this.message = 'AuthService instance created';
     }
 
-    async validateSpotifyToken(token, provider){
+    async validateSpotifyToken(token, provider, codeSpotify){
         let finalResponse = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", spotify_user_data: {}};
         try{
             const headersToken = {
@@ -27,6 +28,21 @@ class AuthService {
             });
 
             const loginResponse = await this.validateExistEmail(response.email);
+
+            //const id = JSON.stringify(loginResponse.userId);
+            //findById(userUid)
+            const userSpotify = await UserSpotifyCode.findOne({userId: loginResponse.userId});
+            console.log("DATOS DEL USER SPOTIFY ==> ", userSpotify);
+            if(userSpotify != null && userSpotify != undefined && userSpotify != ''){
+                //actualizar code
+                await UserSpotifyCode.updateOne({userId: loginResponse.userId},{
+                    code: codeSpotify
+                });
+            }else{
+                const userSpotifyCode = new UserSpotifyCode({userId: loginResponse.userId, code: codeSpotify});
+                const userSpotifyCodeSaved = await userSpotifyCode.save();
+                console.log('USER SPOTIFY SAVED ==> ', userSpotifyCodeSaved);
+            }
             if(loginResponse.existEmail == true){
                 finalResponse = {
                     existEmail: loginResponse.existEmail,
@@ -83,7 +99,9 @@ class AuthService {
 
             if(response.access_token != undefined && response.access_token != null && response.access_token != ''){
                 console.log("spotify token ==> ", response.access_token);
-                const responseUserData = await this.validateSpotifyToken(response.access_token, provider);
+                //response.refresh_token; guardar en documento en mongo asociando el _id del usuario
+
+                const responseUserData = await this.validateSpotifyToken(response.access_token, provider, response.refresh_token);
                 finalResponse = {
                     existEmail: responseUserData.existEmail,
                     jwt: responseUserData.jwt,
@@ -244,7 +262,7 @@ class AuthService {
     }
 
     async validateExistEmail(validateEmail) {
-        let validateUserExist = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: ""};
+        let validateUserExist = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", userId: ""};
         try {
             console.log("email antes de consultar la base: "+ validateEmail);
             const user = await userModel.findOne({email: validateEmail});
@@ -297,7 +315,8 @@ class AuthService {
                             validateUserExist.existEmail = true;
                             validateUserExist.jwt = jwtCreated;
                             validateUserExist.isProviderError = true;
-                            validateUserExist.message = "Email registrado a traves de Google o Spotify"
+                            validateUserExist.message = "Email registrado a traves de Google o Spotify",
+                            validateUserExist.userId = _id
                         }
                     }else{
                         //enviar mail
@@ -308,7 +327,8 @@ class AuthService {
                         if ( emailSended ) {
                             validateUserExist.finishRegister = true,
                             //validateUserExist.existEmail = true,
-                            validateUserExist.message = "Se envio email para finalizar el registro"
+                            validateUserExist.message = "Se envio email para finalizar el registro",
+                            validateUserExist.userId = _id
                         } else {
                             validateUserExist.message = "No se pudo continuar con el proceso de activación de cuenta"
                         }
