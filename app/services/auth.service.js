@@ -422,12 +422,15 @@ class AuthService {
     };
 
     async createAccountByEmail(email, newPassword, user_type, provider) {
+
+        const filePath = "uploads/profile_default.png"
+
         console.log('datos del usuario para registrar: '+ email+"/"+newPassword+"/"+user_type);
         let userRegister = { accountCreated: false, userData: {} }
         try {
             if(email != null && newPassword != null && user_type != null){
                 const password = bcrypt.hashSync(newPassword, bcrypt.genSaltSync(10));
-                const user = new User({email, password, user_type, provider, isPremium: false});
+                const user = new User({email, password, user_type, provider, isPremium: false, profile_phot: filePath});
                 const registeredUser = await user.save();
                 console.log('usuario registrado: '+ registeredUser);
                 const userAccountDataToSend = {
