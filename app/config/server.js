@@ -26,6 +26,7 @@ class Server{
         this.app.use(express.json());
         this.app.use(express.static('public'));
         this.app.use(helmet());
+        this.app.use('/uploads', express.static('uploads'));
         this.app.use(express.urlencoded({extended: true}))
         this.app.use(morgan('dev'))
         this.app.use(cookieParser())

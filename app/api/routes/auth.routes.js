@@ -6,7 +6,8 @@ const { DecodeUserToken, validateEmaiResetPassword, validateResetCode, userReset
 const { validateRequestFields } = require(path.join(process.cwd(), 'app' ,'helpers', 'validateHelpers'));//require('../../helpers/validateHelpers');
 const { validateEmail, validateLoginByEmail, createAccount, validateSpotifyCode, validateEmailBySocialMedia } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'auth.controller'));
 const { confirmAccount } = require(path.join(process.cwd(), 'app', 'api', 'controllers', 'emailer.controller'));
-const logger = require('heroku-logger')
+const logger = require('heroku-logger');
+
 
 //Passport Google
 require(path.join(process.cwd(), 'app' ,'config', 'passport-google'))(passport);
