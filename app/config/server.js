@@ -18,7 +18,6 @@ class Server{
         this.initMiddlewares();
         this.routes();
         connectDB();
-        
     }
 
     initMiddlewares(){
