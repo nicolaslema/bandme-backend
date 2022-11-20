@@ -16,9 +16,6 @@ class AuthService {
     }
 
     async validateSpotifyToken(token, provider, codeSpotify){
-        console.log("token para hacer la busqueda ==> ", token)
-        console.log("refresh token ==> ", codeSpotify)
-        console.log("provider ==> ", provider)
         let finalResponse = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", spotify_user_data: {}};
         try{
             const headersToken = {
@@ -29,9 +26,9 @@ class AuthService {
             const {data:response} = await axios.get('https://api.spotify.com/v1/me', {
                 headers: headersToken
             });
-            console.log("email obtenido a traves del token ==> ", response.email);
+
             const loginResponse = await this.validateExistEmail(response.email);
-            console.log("respuesta luego de buscar en la base si existe el email ==> ", loginResponse);
+
             //const id = JSON.stringify(loginResponse.userId);
             //findById(userUid)
             const userSpotify = await UserSpotifyCode.findOne({userId: loginResponse.userId});
