@@ -6,11 +6,8 @@ const logger = require('heroku-logger')
 
 const validateEmail = async (req, res = response) => {
     const { email } = req.body;
-    console.log('email de la request: '+ email);
     const authService = AuthService;
-    console.log(authService.message);
     const validateUserExist = await authService.validateExistEmail(email);
-    console.log('email antes de entrar al if del controller: '+ validateUserExist.existEmail);
     try{
         if ( validateUserExist.existEmail ){
             res.status(200).json({
@@ -40,7 +37,6 @@ const validateEmail = async (req, res = response) => {
 
 const validateLoginByEmail = async (req, res = response) => {
     const { email, password } = req.body;
-    console.log("email de la request: "+ email + "/ pass de la request: "+ password);
     const authService = AuthService;
     const userLogin = await authService.validateLoginByEmail(email, password);
     try {
@@ -66,7 +62,6 @@ const validateLoginByEmail = async (req, res = response) => {
 
 const createAccount = async (req, res = response) => {
     const { email, provider, userType } = req.body;
-    console.log("email de la request: "+ email + "/ provider de la request: "+ provider + "/ userType de la request: "+ userType);
     let userRegister = {accountCreated: false};
     const authService = AuthService;
     if(provider == "GOOGLE" || provider == "SPOTIFY"){
@@ -100,11 +95,9 @@ const createAccount = async (req, res = response) => {
 
 const DecodeUserToken = async(req, res = response) => {
     const { token } = req.body;
-    console.log("El token recibido es: " + token);
     try{
         const authService = AuthService;
         const userData = await authService.decodeToken(token);
-        console.log("User id obtenido: " + userData.uid);
         if(userData.user_exist){
             res.status(200).json({
                 uid: userData.uid,
@@ -126,7 +119,6 @@ const DecodeUserToken = async(req, res = response) => {
 
 const validateSpotifyCode = async(req, res = response) => {
     const { code, provider } = req.body;
-    console.log("Codigo recibido: " + code);
     try{
         const authService = AuthService;
         const validateUserExist = await authService.validateSpotifyCode(code, provider);
@@ -159,11 +151,9 @@ const validateSpotifyCode = async(req, res = response) => {
 const validateEmailBySocialMedia = async (req, res = response) => {
     logger.info("CONTROLLER GOOOGLEEEE: "+ JSON.stringify(req.user))
     const { profilePhoto, firstName, lastName, email, provider } = req.user;
-    //console.log('email de la request by social media: '+ email, profilePhoto, firstName, lastName, provider);
     try{
         const authService = AuthService;
         const validateUserExist = await authService.validateExistEmail(email);
-        console.log('controller if: ' + validateUserExist.existEmail);
         if ( validateUserExist.existEmail ){
             res.status(200).json({
                 exist_email: validateUserExist.existEmail,
@@ -186,8 +176,6 @@ const validateEmailBySocialMedia = async (req, res = response) => {
             });
         }
     }catch (error) {
-        console.log('Error al iniciar el servicio de validacion de email by social media: '+ error);
-        logger.warn('Error al iniciar el servicio de validacion de email by social media: ', error)
         res.status(500).json({
             message: "Fallo el logueo/registro por red social"
         });
@@ -197,7 +185,6 @@ const validateEmailBySocialMedia = async (req, res = response) => {
 
 const validateEmaiResetPassword = async (req, res = response) => {
     const { email } = req.body;
-    console.log('email de la request: '+ email);
     const authService = AuthService;
     const validateEmailExist = await authService.validateExistEmailResetPassword(email);
     try{
@@ -215,7 +202,6 @@ const validateEmaiResetPassword = async (req, res = response) => {
             });
         }
     } catch (error) {
-        console.log('Catch: Error al validar si existe el email');
         res.status(500).json({
             emailValid: false,
             message: 'Email validation failed',
@@ -226,7 +212,6 @@ const validateEmaiResetPassword = async (req, res = response) => {
 
 const validateResetCode = async (req, res = response) => {
     const { code } = req.body;
-    console.log('code de la request: '+ code);
     const authService = AuthService;
     const validateResetCode = await authService.validateResetPasswordCode(code);
     try{
@@ -244,7 +229,6 @@ const validateResetCode = async (req, res = response) => {
             });
         }
     } catch (error) {
-        console.log('Catch: Error al validar si existe el email');
         res.status(500).json({
             isValid: false,
             jwt: '',
@@ -256,15 +240,12 @@ const validateResetCode = async (req, res = response) => {
 const userResetPassword = async (req, res = response) => {
     const token = req.headers['auth-token'];
     const { newPassword } = req.body;
-    console.log("nueva password: ", newPassword);
     const authService = AuthService;
     if(token != undefined){
         try{
             const {uid} = await authService.decodeToken(token);
-            console.log("User id obtenido: " + uid);
             if(uid != '' && uid != undefined && uid != null){
                 const validateResetPassword = await authService.resetPassword(newPassword, uid);
-                console.log('RESPUESTA FINAL: ', validateResetPassword);
                 if (validateResetPassword.wasUpdated){
                     res.status(200).json({
                         wasUpdated: validateResetPassword.wasUpdated,
@@ -279,13 +260,11 @@ const userResetPassword = async (req, res = response) => {
                     });
                 }
             }else{
-                console.log('No se pudo autenticar la identidad por que el token es incorrecto ');
                 return res.status(500).json({
                     message: 'No se pudo autenticar la identidad'
                 });
             }
         }catch(error){
-            console.log('Catch: Error al validar si existe el email');
             res.status(500).json({
                 wasUpdated: false,
                 jwt: '',
