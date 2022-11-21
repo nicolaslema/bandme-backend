@@ -28,7 +28,6 @@ class EmailerService {
 
     generateConfirmationCode(){
         const code = Math.floor(1000 + Math.random() * 9000);
-        console.log('codigo de confirmacion: '+ code);
         return code;
     }
    
@@ -59,8 +58,6 @@ class EmailerService {
     };
 
     async sendConfirmationEmail(email, userId) {
-        console.log('Email al cual enviar el codigo de autenticacion: ' + email);
-        console.log('User ID: ' + userId);
         try {
             const code = this.generateConfirmationCode();
             let mailOptions = {
@@ -93,15 +90,12 @@ class EmailerService {
         if(!isResetPassword){
             const userCode = new UserCode({userId, code});
             const userCodeAssociated = await userCode.save();
-            console.log('Codigo y userId asociados: ' + JSON.stringify(userCodeAssociated));
         }else{
             const userCodeReset = new UserCodeReset({userId, code});
             const userCodeResetAssociated = await userCodeReset.save();
 
             const datos = await UserCodeReset.findOne({code: code});
-            console.log("VALOOOR: ", datos)
             
-            console.log('Codigo y userId asociados para el reinicio de clave: ' + JSON.stringify(userCodeResetAssociated));
         }
         
     }
@@ -116,7 +110,6 @@ class EmailerService {
                 if(isReadyToJwt == true){
                     const jwtCreated = await this.createJWT(userData.data);
                     if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
-                        console.log('Error al generar el jwt su valor ->: '+ jwtCreated);
                         confirmAccountResponse = {
                             isConfirm: false,
                             message: 'JWT is no created'
@@ -177,7 +170,6 @@ class EmailerService {
     async updateCodeStatus(code, userEmail){
         try{
             const userCodeData = await userCodeModel.findOne({code: code});
-            console.log("USER CODE DATA: " + userCodeData);
             let response = {
                 isValid: false,
                 data: "",
@@ -186,7 +178,6 @@ class EmailerService {
             };
 
             if(userCodeData == null){
-                console.log("user code data NULL");
                 response = {
                     isValid: false,
                     data: "null",
@@ -196,7 +187,6 @@ class EmailerService {
             }else{
                 const { codeStatus }  = userCodeData;
                 if(codeStatus == "used"){
-                    console.log("CAYO EN USADO");
                     response = {
                         isValid: false,
                         data: "",
@@ -204,14 +194,11 @@ class EmailerService {
                         isEmailValid: ""
                     }
                 }else{
-                    console.log("CAYO EN VALIDAR");
-                    //valido que el userid traiga el email y sea igual al email que mandaron por request, sino rebotar
                     const user = await userModel.findById(userCodeData.userId);
                     const { email } = user;
                     if(email == userEmail){
                         const userCodeData = await userCodeModel.findOneAndUpdate({code: code}, { codeStatus: 'used' }, {new: true});
-                        console.log('codeStatus para confirmar cuenta: '+ JSON.stringify(userCodeData));
-                        console.log('id del usuario para buscar: ' + userCodeData.userId);
+                        
                         response = {
                             isValid: true,
                             data: userCodeData.userId,
@@ -228,7 +215,6 @@ class EmailerService {
                     }
                 }
             }
-            console.log('listo para generar el jwt?(code status): ' + response.isValid);
             return response;
         } catch (error) {
             console.log('Catch: Error al actualizar codeStatus: ' + error);
@@ -246,12 +232,10 @@ class EmailerService {
                 const userData = await userModel.updateOne({_id: userId}, {
                     account_status: 'enable'
                 });
-                console.log('accountStatus para confirmar cuenta: '+ JSON.stringify(userData));
                 response = true;
             }else {
                 response = false
             }
-            console.log('listo para generar el jwt?(account_Status): ' + response);
             return response;
         } catch (error) {
             console.log('Catch: Error al actualizar accountStatus: ' + error);
