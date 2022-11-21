@@ -14,8 +14,9 @@ class AuthService {
     constructor(){
         this.message = 'AuthService instance created';
     }
-
+    //ACA ESTA FALLANDO
     async validateSpotifyToken(token, provider, codeSpotify){
+        
         let finalResponse = {existEmail: false, jwt: "", finishRegister: false, isProviderError: false, message: "", spotify_user_data: {}};
         try{
             const headersToken = {
@@ -32,13 +33,16 @@ class AuthService {
             //const id = JSON.stringify(loginResponse.userId);
             //findById(userUid)
             const userSpotify = await UserSpotifyCode.findOne({userId: loginResponse.userId});
-            if(userSpotify != null && userSpotify != undefined && userSpotify != ''){
+            let isNewAccount = false;
+            if(userSpotify != null && userSpotify != undefined && userSpotify != '' && loginResponse.userId != '' && loginResponse.userId != undefined && loginResponse.userId != null){
                 //actualizar code
+                isNewAccount = false;
                 await UserSpotifyCode.updateOne({userId: loginResponse.userId},{
                     code: codeSpotify
                 });
             }else{
-                const userSpotifyCode = new UserSpotifyCode({userId: loginResponse.userId, code: codeSpotify});
+                isNewAccount = true;
+                const userSpotifyCode = new UserSpotifyCode({userId: "", code: codeSpotify});
                 const userSpotifyCodeSaved = await userSpotifyCode.save();
             }
             if(loginResponse.existEmail == true){
@@ -50,17 +54,41 @@ class AuthService {
                     message: loginResponse.message
                 }
             }else{
-                finalResponse = {
-                    existEmail: loginResponse.existEmail,
-                    jwt: loginResponse.jwt,
-                    finishRegister: loginResponse.finishRegister,
-                    isProviderError: loginResponse.isProviderError,
-                    message: loginResponse.message,
-                    spotify_user_data: {
-                        email: response.email,
-                        profilePhoto: response.images[0].url, 
-                        firstName: response.display_name,
-                        provider: provider
+                let imagenSpotify;
+                if(response.images[0]!= null && response.images[0] != undefined && response.images[0] != '' && response.images[0].length > 0){
+                    imagenSpotify = response.images[0].url
+                }else{
+                    imagenSpotify = ""
+                }
+                if(isNewAccount == true){
+                    finalResponse = {
+                        existEmail: loginResponse.existEmail,
+                        jwt: loginResponse.jwt,
+                        finishRegister: loginResponse.finishRegister,
+                        isProviderError: loginResponse.isProviderError,
+                        message: loginResponse.message,
+                        spotify_user_data: {
+                            email: response.email,
+                            profilePhoto: imagenSpotify, 
+                            firstName: response.display_name,
+                            provider: provider,
+                            codeSpotify: codeSpotify
+                        },
+                    }
+                }else{
+                    finalResponse = {
+                        existEmail: loginResponse.existEmail,
+                        jwt: loginResponse.jwt,
+                        finishRegister: loginResponse.finishRegister,
+                        isProviderError: loginResponse.isProviderError,
+                        message: loginResponse.message,
+                        spotify_user_data: {
+                            email: response.email,
+                            profilePhoto: imagenSpotify, 
+                            firstName: response.display_name,
+                            provider: provider
+                        },
+                        codeSpotify: ""
                     }
                 }
             }
@@ -94,9 +122,7 @@ class AuthService {
             const {data:response} = await axios.post('https://accounts.spotify.com/api/token', params, {
                 headers: headers
             });
-
             if(response.access_token != undefined && response.access_token != null && response.access_token != ''){
-
                 const responseUserData = await this.validateSpotifyToken(response.access_token, provider, response.refresh_token);
                 finalResponse = {
                     existEmail: responseUserData.existEmail,
@@ -129,10 +155,7 @@ class AuthService {
         return finalResponse;
     }
 
-    //10. Y asi se le va a permitir ingresar la nueva password dos veces y las va a enviar a un nuevo servicio de 'ResetPassword' con el JWT temporal
-    //10.1. Ese servicio va a tomar el JWT lo va a desenctriptar y va a obtener el id del usuario
     async resetPassword(newPassword, userUid){
-        //11. Luego va a comparar las dos passwords y si coinciden las va a encriptar y las va a guardar
         let resetPasswordResponse = {
             wasUpdated: false,
             jwt: '',
@@ -318,7 +341,7 @@ class AuthService {
             validateUserExist.uid = result.id;
             validateUserExist.user_exist = true;
         } catch (error){
-            console.log('fallo la desenctriptacion de token en service: ' + error);
+            console.log('fallo la desencriptacion de token en service: ' + error);
         }
         return validateUserExist;
     }
@@ -411,7 +434,7 @@ class AuthService {
         return userRegister;
     };
 
-    async createAccountBySocialMedia(email, provider, user_type, profile_photo, first_name, last_name) {
+    async createAccountBySocialMedia(email, provider, user_type, profile_photo, first_name, last_name, codeSpotify) {
         const isPremium = false;
         let userRegister = { accountCreated: false, userData: {} }
         try {
@@ -423,6 +446,11 @@ class AuthService {
                     user = new User({email, user_type, provider, profile_photo, first_name, isPremium});
                 }
                 const registeredUser = await user.save();
+                if(provider == "SPOTIFY"){
+                    const result = await UserSpotifyCode.updateOne({code: codeSpotify},{
+                        userId: registeredUser._id
+                    });
+                }
                 let userAccountDataToSend;
                 if(last_name != undefined && last_name != null && last_name != ''){
                     userAccountDataToSend = {

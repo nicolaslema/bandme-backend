@@ -61,12 +61,23 @@ const validateLoginByEmail = async (req, res = response) => {
 }
 
 const createAccount = async (req, res = response) => {
-    const { email, provider, userType } = req.body;
+    const { email, provider, userType, profilePhoto, firstName, lastName, codeSpotify } = req.body;
     let userRegister = {accountCreated: false};
     const authService = AuthService;
     if(provider == "GOOGLE" || provider == "SPOTIFY"){
-        const { profilePhoto, firstName, lastName } = req.body;
-        userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
+        if(provider == "SPOTIFY"){
+            if(codeSpotify != undefined && codeSpotify != '' && codeSpotify != null){
+                userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName, codeSpotify);
+            }else{
+                userRegister = {
+                    accountCreated: false,
+                    payload: {},
+                    message: "No se esta recibiendo el code spotify"
+                }
+            }
+        }else{
+            userRegister = await authService.createAccountBySocialMedia(email, provider, userType, profilePhoto, firstName, lastName);
+        }
     } else {
         const { password } = req.body;
         userRegister = await authService.createAccountByEmail(email, password, userType, provider);
@@ -76,12 +87,12 @@ const createAccount = async (req, res = response) => {
             res.status(200).json({
                 accountCreated: userRegister.accountCreated,
                 payload: userRegister.userData,
-                message: 'Account created successfully'
+                message: "Cuenta creada exitosamente"
             });
         } else {
             res.status(200).json({
                 accountCreated: userRegister.accountCreated,
-                message: "Account not created"
+                message: "Falló la creacion de la cuenta"
             });
         }
     } catch(error) {
@@ -91,7 +102,7 @@ const createAccount = async (req, res = response) => {
                 message: "Create account failed"
             });
         }   
-    };
+};
 
 const DecodeUserToken = async(req, res = response) => {
     const { token } = req.body;
