@@ -5,8 +5,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node app",
+    "test": "mocha --compiler js:babel-register, --timeout=10000",
+    "test:watch": "mocha --watch --compiler js:babel-register, --timeout=10000",
     "dev": "cross-env NODE_ENV=development nodemon index"
   },
+
+  "pre-commit":[
+    "test"
+  ],
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -36,6 +43,10 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "chai": "^4.3.7",
+    "faker": "^6.6.6",
+    "mocha": "^10.1.0",
+    "nodemon": "^2.0.15",
+    "sinon": "^14.0.2"
   }
 }

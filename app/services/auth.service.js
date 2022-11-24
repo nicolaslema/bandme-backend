@@ -194,33 +194,42 @@ class AuthService {
 
     async validateResetPasswordCode(resetCode){
         let validateCode = {isValid: false, jwt: '', message: ''}
-        const userCodeResetAssociated = await userCodeResetModel.findOne({code: resetCode});
-        if(userCodeResetAssociated.userId != undefined && userCodeResetAssociated.codeStatus == 'not used'){
-            const updateCode = await userCodeResetModel.updateOne({_id: userCodeResetAssociated._id}, {
-                codeStatus: 'used'
-            });
-            
-            const jwtCreated = await this.createJWT(userCodeResetAssociated.userId);
-                if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
-                    validateCode = {
-                        isValid: true,
-                        jwt: jwtCreated,
-                        message: 'Codigo validado y error al generar jwt'
+        try{
+            const userCodeResetAssociated = await userCodeResetModel.findOne({code: resetCode});
+            if(userCodeResetAssociated.userId != undefined && userCodeResetAssociated.codeStatus == 'not used'){
+                const updateCode = await userCodeResetModel.updateOne({_id: userCodeResetAssociated._id}, {
+                    codeStatus: 'used'
+                });
+                
+                const jwtCreated = await this.createJWT(userCodeResetAssociated.userId);
+                    if(jwtCreated == false || jwtCreated == null || jwtCreated.length == 0){
+                        validateCode = {
+                            isValid: true,
+                            jwt: jwtCreated,
+                            message: 'Codigo validado y error al generar jwt'
+                        }
+                    } else {
+                        validateCode = {
+                            isValid: true,
+                            jwt: jwtCreated,
+                            message: 'Codigo validado y jwt generado'
+                        }
                     }
-                } else {
-                    validateCode = {
-                        isValid: true,
-                        jwt: jwtCreated,
-                        message: 'Codigo validado y jwt generado'
-                    }
+    
+            }else{
+                console.log('false devolver error');
+                validateCode = {
+                    isValid: false,
+                    jwt: '',
+                    message: 'Error al validar el codigo'
                 }
-
-        }else{
-            console.log('false devolver error');
+            }
+        }catch(error){
+            console.log('false devolver error: ', error);
             validateCode = {
                 isValid: false,
                 jwt: '',
-                message: 'Error al validar el codigo'
+                message: 'Error al validar el codigo por fallo en la busqueda'
             }
         }
         return validateCode;
